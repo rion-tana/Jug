@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ジャグラー設定判別</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#2a1838">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ジャグ判別">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#efe9f6; --panel:#ffffff; --ink:#2a1838; --sub:#6d5a80; --line:#d9cde6;
+  --lamp:#ff2d8a; --bar:#8a4fc4; --bar-hi:#ff2d8a; --field:#f6f1fb;
+  color-scheme:light; box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#1c1026; --panel:#2a1a38; --ink:#f5ecff; --sub:#b9a6cc; --line:#43305a;
+    --lamp:#ff3d95; --bar:#a874e0; --bar-hi:#ff3d95; --field:#22152f; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1c1026; --panel:#2a1a38; --ink:#f5ecff; --sub:#b9a6cc; --line:#43305a;
+  --lamp:#ff3d95; --bar:#a874e0; --bar-hi:#ff3d95; --field:#22152f; color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Hiragino Sans","Yu Gothic",sans-serif;font-size:16px;line-height:1.6;-webkit-text-size-adjust:100%}
+.wrap{max-width:520px;margin:0 auto;padding:16px 16px 40px}
+h1{font-family:"Dela Gothic One","Hiragino Sans",sans-serif;font-weight:400;font-size:22px;margin:4px 0 2px;letter-spacing:.02em}
+.lead{color:var(--sub);font-size:13px;margin:0 0 12px}
+
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:10px}
+.tabs button{flex:0 0 auto;padding:8px 14px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font:inherit;font-size:14px;font-weight:800;cursor:pointer;white-space:nowrap}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tabs .add{color:var(--sub);font-weight:700}
+.tabmeta{display:flex;gap:8px;margin-bottom:10px}
+.tabmeta input{flex:1;min-width:0;font:inherit;font-size:14px;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.tabmeta button{flex:0 0 auto;font:inherit;font-size:13px;color:var(--sub);background:transparent;border:1px solid var(--line);border-radius:10px;padding:0 12px;cursor:pointer}
+
+.model{width:100%;font:inherit;font-size:17px;font-weight:800;color:var(--ink);background:var(--panel);border:2px solid var(--ink);border-radius:14px;padding:12px;margin-bottom:12px;appearance:none;-webkit-appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--ink) 50%),linear-gradient(135deg,var(--ink) 50%,transparent 50%);background-position:calc(100% - 22px) 50%,calc(100% - 16px) 50%;background-size:6px 6px;background-repeat:no-repeat}
+
+.lampbox{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:18px 16px 16px;display:flex;gap:16px;align-items:center}
+.lamp{flex:0 0 96px;height:96px;border-radius:50%;display:grid;place-items:center;background:#3a2a44;transition:background .5s}
+.lamp span{font-family:"Dela Gothic One",sans-serif;font-size:21px;line-height:1;color:#5b4766;transition:color .5s,text-shadow .5s}
+.lamp.on{background:radial-gradient(circle at 50% 45%,#fff 0%,var(--lamp) 55%,#a0004e 100%)}
+.lamp.on span{color:#fff;text-shadow:0 0 8px #fff}
+.lampinfo{flex:1;min-width:0}
+.big{font-family:"Dela Gothic One",sans-serif;font-size:40px;line-height:1.05}
+.big small{font-size:18px}
+.lampinfo p{margin:2px 0 0;font-size:13px;color:var(--sub)}
+.verdict{margin-top:12px;padding:10px 12px;border-radius:12px;background:var(--field);font-size:14px;font-weight:700}
+
+section{margin-top:18px}
+h2{font-size:15px;font-weight:800;margin:0 0 8px}
+.grid{display:grid;gap:10px}
+.field{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.field label{flex:0 0 76px;font-weight:700;font-size:15px}
+.field .rate{font-size:12px;color:var(--sub);flex:0 0 60px;text-align:right}
+.step{display:flex;align-items:center;gap:6px;flex:1;min-width:0}
+.step input{width:100%;min-width:0;text-align:center;font:inherit;font-size:20px;font-weight:800;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:10px;padding:6px 4px}
+.step button{flex:0 0 40px;height:40px;border-radius:10px;border:1px solid var(--line);background:var(--field);color:var(--ink);font-size:20px;font-weight:800;cursor:pointer}
+.step button:active,.quick button:active{transform:scale(.94)}
+.quick{display:flex;gap:6px;width:100%}
+.quick button{flex:1;height:32px;border-radius:8px;border:1px solid var(--line);background:var(--field);color:var(--sub);font:inherit;font-size:13px;font-weight:800;cursor:pointer}
+input:focus-visible,button:focus-visible,summary:focus-visible,select:focus-visible{outline:3px solid var(--lamp);outline-offset:2px}
+
+details{background:var(--panel);border:1px solid var(--line);border-radius:14px;margin-top:10px}
+summary{padding:12px;font-weight:700;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:8px}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"＋";color:var(--sub)}
+details[open] summary::after{content:"－"}
+details .inner{padding:0 12px 12px;display:grid;gap:10px}
+details .inner .field{border:none;padding:0;background:none}
+.note{font-size:12px;color:var(--sub);margin:0}
+.result{font-size:14px;font-weight:700;background:var(--field);border-radius:10px;padding:8px 10px}
+.check{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700}
+.check input{width:20px;height:20px}
+.mini{display:flex;gap:6px}
+.mini button{flex:1;padding:8px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.mini button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{flex:1 1 auto;padding:8px 10px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.priorline{font-size:12px;color:var(--sub);margin:6px 0 0}
+
+.bars{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px}
+.row{display:grid;grid-template-columns:44px 1fr 52px;align-items:center;gap:8px;padding:4px 0}
+.row b{font-size:14px}
+.track{height:18px;border-radius:9px;background:var(--field);overflow:hidden}
+.fill{height:100%;border-radius:9px;background:var(--bar);width:0;transition:width .4s}
+.row.hi .fill{background:var(--bar-hi)}
+.row span{text-align:right;font-weight:800;font-size:14px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.stat .k{font-size:12px;color:var(--sub)}
+.stat .v{font-family:"Dela Gothic One",sans-serif;font-size:22px;line-height:1.2}
+.stat .v small{font-size:13px}
+.ghrow{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-top:10px;font-size:13px;color:var(--sub)}
+.ghrow input{width:70px;font:inherit;font-weight:700;text-align:center;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:8px;padding:4px}
+.guide{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;font-size:14px}
+.guide p{margin:0 0 6px}.guide p:last-child{margin:0}
+
+.compare{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow-x:auto}
+.tblwrap{overflow-x:auto;padding:0 12px 12px}
+table{border-collapse:collapse;width:100%;font-size:13px;white-space:nowrap}
+th,td{padding:6px;text-align:right;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--sub);font-weight:700}
+.compare table{min-width:100%}
+.src{padding:0 12px 12px;font-size:12px;color:var(--sub);line-height:1.8}
+.src p{margin:0 0 8px}
+.src b{color:var(--ink)}
+.reset{margin-top:18px;width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--sub);font:inherit;font-weight:700;cursor:pointer}
+footer{font-size:11px;color:var(--sub);margin-top:16px;line-height:1.7}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>ジャグラー設定判別</h1>
+  <p class="lead">6号機ジャグラー10機種対応。最大5台まで並べて比べられます。</p>
+
+  <div class="tabs" id="tabs" role="tablist" aria-label="台"></div>
+  <div class="tabmeta">
+    <input id="tname" maxlength="12" placeholder="台番号・メモ(例:137番 角台)" aria-label="台番号・メモ">
+    <button type="button" id="tdel">この台を削除</button>
+  </div>
+
+  <label for="model" class="note" style="display:block;margin-bottom:4px">機種</label>
+  <select id="model" class="model"></select>
+
+  <div class="lampbox" aria-live="polite">
+    <div class="lamp" id="lamp"><span>判別</span></div>
+    <div class="lampinfo">
+      <div class="big" id="p56">–<small>%</small></div>
+      <p>設定5・6の可能性</p>
+      <p id="p4up">設定4以上 –%</p>
+    </div>
+  </div>
+  <div class="verdict" id="verdict">総回転数・BIG・REGを入れてください。</div>
+
+  <section>
+    <h2>台データ</h2>
+    <div class="grid">
+      <div class="field"><label for="g">総回転数</label>
+        <div class="step"><button type="button" data-t="g" data-d="-100" aria-label="100減らす">−</button><input id="g" type="number" inputmode="numeric" min="0" placeholder="0"><button type="button" data-t="g" data-d="100" aria-label="100増やす">＋</button></div>
+        <div class="quick"><button type="button" data-t="g" data-d="10">+10</button><button type="button" data-t="g" data-d="50">+50</button><button type="button" data-t="g" data-d="1000">+1000</button></div>
+      </div>
+      <div class="field"><label for="b">BIG</label>
+        <div class="step"><button type="button" data-t="b" data-d="-1" aria-label="1減らす">−</button><input id="b" type="number" inputmode="numeric" min="0" placeholder="0"><button type="button" data-t="b" data-d="1" aria-label="1増やす">＋</button></div>
+        <div class="rate" id="rb">–</div>
+      </div>
+      <div class="field"><label for="r">REG</label>
+        <div class="step"><button type="button" data-t="r" data-d="-1" aria-label="1減らす">−</button><input id="r" type="number" inputmode="numeric" min="0" placeholder="0"><button type="button" data-t="r" data-d="1" aria-label="1増やす">＋</button></div>
+        <div class="rate" id="rr">–</div>
+      </div>
+      <p class="note" id="rc2"></p>
+    </div>
+
+    <details id="dRev">
+      <summary>グラフの差枚からブドウを推定</summary>
+      <div class="inner">
+        <p class="note">ブドウを数えていなくても、データカウンターのグラフの最終差枚から逆算できます。リプレイの引きムラやグラフの読み取り誤差で数百枚単位のズレが出るので、あくまで参考値です。</p>
+        <div class="field"><label for="diff">最終差枚</label><div class="step"><button type="button" data-t="diff" data-d="-10" data-neg="1" aria-label="10減らす">−</button><input id="diff" type="number" inputmode="text" placeholder="例:500 / -300"><button type="button" data-t="diff" data-d="10" data-neg="1" aria-label="10増やす">＋</button></div><div class="quick"><button type="button" data-t="diff" data-d="-100" data-neg="1">−100</button><button type="button" data-t="diff" data-d="100" data-neg="1">+100</button><button type="button" data-t="diff" data-d="500" data-neg="1">+500</button></div></div>
+        <div class="mini" id="style" role="group" aria-label="打ち方">
+          <button type="button" data-s="aim">チェリー狙い</button>
+          <button type="button" data-s="free">適当打ち</button>
+        </div>
+        <div class="result" id="revOut">差枚を入れると推定ブドウ確率を表示します。</div>
+        <label class="check"><input type="checkbox" id="useRev">推定ブドウを判別に使う(重みを半分にして反映)</label>
+      </div>
+    </details>
+
+    <details id="dGrape">
+      <summary>ブドウ(数えている場合)</summary>
+      <div class="inner">
+        <p class="note">数え始めてからのゲーム数を入れてください。こちらを入れると差枚からの推定より優先します。ブドウの設定差は小さいので、2000G以上数えると効いてきます。</p>
+        <div class="field"><label for="gr">ブドウ回数</label><div class="step"><button type="button" data-t="gr" data-d="-1" aria-label="1減らす">−</button><input id="gr" type="number" inputmode="numeric" placeholder="0"><button type="button" data-t="gr" data-d="1" aria-label="1増やす">＋</button></div><div class="quick"><button type="button" data-t="gr" data-d="5">+5</button><button type="button" data-t="gr" data-d="10">+10</button></div></div>
+        <div class="field"><label for="gg">数えたG数</label><div class="step"><button type="button" data-t="gg" data-d="-10" aria-label="10減らす">−</button><input id="gg" type="number" inputmode="numeric" placeholder="0"><button type="button" data-t="gg" data-d="10" aria-label="10増やす">＋</button></div><div class="rate" id="rg">–</div><div class="quick"><button type="button" data-t="gg" data-d="100">+100</button><button type="button" data-t="gg" data-d="1000">+1000</button></div></div>
+      </div>
+    </details>
+
+    <details id="dReg">
+      <summary>REGの内訳(わかる場合)</summary>
+      <div class="inner">
+        <p class="note" id="regNote"></p>
+        <div class="field"><label for="rs">単独REG</label><div class="step"><button type="button" data-t="rs" data-d="-1" aria-label="1減らす">−</button><input id="rs" type="number" inputmode="numeric" placeholder="0"><button type="button" data-t="rs" data-d="1" aria-label="1増やす">＋</button></div></div>
+        <div class="field"><label for="rc">チェリーREG</label><div class="step"><button type="button" data-t="rc" data-d="-1" aria-label="1減らす">−</button><input id="rc" type="number" inputmode="numeric" placeholder="0"><button type="button" data-t="rc" data-d="1" aria-label="1増やす">＋</button></div></div>
+        <p class="note" id="splitMsg"></p>
+      </div>
+    </details>
+  </section>
+
+  <section>
+    <h2>計算の前提</h2>
+    <div class="seg" id="seg" role="group" aria-label="店の状況">
+      <button type="button" data-p="even">均等</button>
+      <button type="button" data-p="island">シマから推定</button>
+    </div>
+    <p class="priorline" id="priorline"></p>
+    <details id="dIsland">
+      <summary>シマのデータを入れる</summary>
+      <div class="inner">
+        <p class="note">同じ機種のシマ全台の総回転数・BIG・REGを合計して入れてください。シマ全体のREG確率から、その日の設定の入り方を推定して前提に使います。データ公開サイトや各台のカウンターで集計できます。</p>
+        <div class="field"><label for="ig">合計G数</label><div class="step"><button type="button" data-t="ig" data-d="-100" aria-label="100減らす">−</button><input id="ig" type="number" inputmode="numeric" placeholder="0"><button type="button" data-t="ig" data-d="100" aria-label="100増やす">＋</button></div><div class="quick"><button type="button" data-t="ig" data-d="1000">+1000</button><button type="button" data-t="ig" data-d="10000">+10000</button></div></div>
+        <div class="field"><label for="ib">合計BIG</label><div class="step"><button type="button" data-t="ib" data-d="-1" aria-label="1減らす">−</button><input id="ib" type="number" inputmode="numeric" placeholder="0"><button type="button" data-t="ib" data-d="1" aria-label="1増やす">＋</button></div><div class="quick"><button type="button" data-t="ib" data-d="10">+10</button></div></div>
+        <div class="field"><label for="ir">合計REG</label><div class="step"><button type="button" data-t="ir" data-d="-1" aria-label="1減らす">−</button><input id="ir" type="number" inputmode="numeric" placeholder="0"><button type="button" data-t="ir" data-d="1" aria-label="1増やす">＋</button></div><div class="quick"><button type="button" data-t="ir" data-d="10">+10</button></div></div>
+        <div class="result" id="islandOut">入力するとシマの状況を表示します。</div>
+      </div>
+    </details>
+  </section>
+
+  <section>
+    <h2>設定ごとの可能性</h2>
+    <div class="bars" id="bars"></div>
+    <div class="stats">
+      <div class="stat"><div class="k">期待設定</div><div class="v" id="es">–</div></div>
+      <div class="stat"><div class="k">期待機械割</div><div class="v" id="ev">–</div></div>
+      <div class="stat"><div class="k">1時間あたり期待差枚</div><div class="v" id="eh">–</div></div>
+      <div class="stat"><div class="k">1時間あたり期待収支</div><div class="v" id="ey">–</div></div>
+      <div class="stat"><div class="k">次の100G以内に当たる確率</div><div class="v" id="e100">–</div></div>
+      <div class="stat"><div class="k">現在の機械割(差枚から)</div><div class="v" id="ecur">–</div></div>
+    </div>
+    <div class="ghrow">
+      <label>1時間に回すG数 <input id="gph" type="number" inputmode="numeric" value="800"></label>
+      <label>1枚あたり <input id="yen" type="number" inputmode="decimal" value="20" step="0.1"> 円</label>
+    </div>
+  </section>
+
+  <section>
+    <h2>この先の目安</h2>
+    <div class="guide" id="guide"><p>データを入れると表示されます。</p></div>
+  </section>
+
+  <section id="cmpSec" hidden>
+    <h2>台の比較</h2>
+    <div class="compare"><table id="cmp"></table></div>
+  </section>
+
+  <section>
+    <details>
+      <summary id="specSum">この機種の確率表</summary>
+      <div class="tblwrap"><table id="spec"></table></div>
+      <p class="src" id="specNote"></p>
+    </details>
+    <details>
+      <summary>計算の前提って何?</summary>
+      <div class="src">
+        <p>設定判別は「この台のデータ」と「この店がそもそもどの設定をどれくらい入れているか」の掛け算で決まります。同じBIG・REGでも、高設定がほぼない店なら低設定の上ブレの可能性が高く、高設定が多い店なら素直に高設定と見てよい、ということです。</p>
+        <p><b>均等</b>:設定1〜6が同じ割合と仮定。データだけで判断する、一番中立な見方です。</p>
+        <p><b>シマから推定</b>:同じ機種のシマ全体のREG確率から、設定の入り方を自動で推定します。実データに基づくので、プリセットより根拠があります。</p>
+        <p>以前あった「通常営業・イベント・回収日」は、店のデータなしでは根拠が作れないため削除しました。</p>
+      </div>
+    </details>
+    <details>
+      <summary>数値の出どころ</summary>
+      <div class="src">
+        <p><b>BIG・REG確率</b>:メーカー公表値。各解析サイトで同じ数値が掲載されています。信頼度は最も高いです。</p>
+        <p><b>ブドウ確率・機械割</b>:smokefield.info「ジャグラースペック一覧表」の掲載値。ブドウはメーカー非公表で、逆算・推定値です。機械割はチェリー狙い条件の値で、公表値より少し高めです。</p>
+        <p><b>単独/チェリー重複REG</b>:ガリぞう氏の調査値(DMMぱちタウン掲載)。マイジャグラーⅥは前作Ⅴ、ネオアイムは前作アイムジャグラーEX(6号機)の値を流用。</p>
+        <p><b>差枚からのブドウ逆算</b>:一般的な逆算式(リプレイ1/7.3、チェリー約1/35で2枚、ボーナスは1枚掛けで揃える前提)を使用。BIG獲得枚数はアイム系約252枚、それ以外約240枚、REGは約96枚。ガールズSSとウルトラミラクルのBIG枚数は未確認で240枚と仮定しています。</p>
+      </div>
+    </details>
+  </section>
+
+  <button class="reset" type="button" id="reset">この台のデータをリセット</button>
+
+  <footer>結果は確率的な推測で、設定や勝ちを保証するものではありません。数千G程度ではどの設定でも大きくブレます。</footer>
+</div>
+
+<script>
+const MV={b:[273.1,270.8,266.4,254.0,240.1,229.1],r:[409.6,385.5,336.1,290.0,268.6,229.1],rs:[655.36,601.25,492.75,407.06,390.10,327.68],rc:[1092.27,1074.36,1057.03,1008.25,862.32,762.05],gr:[5.90,5.86,5.82,5.80,5.78,5.67],w:[97.85,98.88,100.80,103.77,106.39,110.53],bn:240};
+const IM={b:[273.1,269.7,269.7,259.0,259.0,255.0],r:[439.8,399.6,331.0,315.1,255.0,255.0],rs:[630.15,574.88,474.90,448.88,364.09,364.09],rc:[1456.36,1310.72,1092.27,1057.03,851.12,851.12],gr:[6.05,6.05,6.05,6.05,6.05,5.79],w:[97.83,98.87,100.43,102.08,104.29,106.54],bn:252};
+const MODELS={
+  my6:{name:"マイジャグラーⅥ",...MV,splitNote:"単独REGは前作マイジャグラーⅤの調査値を流用"},
+  my5:{name:"マイジャグラーⅤ",...MV,splitNote:"ガリぞう氏調査値"},
+  neo:{name:"ネオアイムジャグラーEX",...IM,splitNote:"単独REGは前作アイムジャグラーEX(6号機)の調査値を流用"},
+  im6:{name:"アイムジャグラーEX(6号機)",...IM,splitNote:"ガリぞう氏調査値"},
+  funky2:{name:"ファンキージャグラー2",b:[266.4,259.0,256.0,249.2,240.1,219.9],r:[439.8,407.1,366.1,322.8,299.3,262.1],gr:[5.94,5.91,5.89,5.85,5.78,5.70],w:[97.87,99.41,100.73,102.95,105.29,110.05],bn:240,bigHeavy:true},
+  happy:{name:"ハッピージャグラーVⅢ",b:[273.1,270.8,263.2,254.0,239.2,226.0],r:[397.2,362.1,332.7,300.6,273.1,256.0],gr:[6.05,6.02,5.99,5.85,5.82,5.79],w:[97.60,98.71,100.51,103.47,106.48,109.12],bn:240},
+  gogo3:{name:"ゴーゴージャグラー3",b:[259.0,258.0,257.0,254.0,247.3,234.9],r:[354.2,332.7,306.2,268.6,247.3,234.9],gr:[6.27,6.21,6.15,6.08,6.01,5.93],w:[98.02,99.06,100.35,102.53,104.75,107.48],bn:240},
+  girls:{name:"ジャグラーガールズSS",b:[273.1,270.8,260.1,250.1,243.6,226.0],r:[381.0,350.5,316.6,281.3,270.8,252.1],gr:[5.99,5.99,5.99,5.99,5.90,5.84],w:[97.83,98.75,100.80,103.11,104.94,108.53],bn:240},
+  mister:{name:"ミスタージャグラー",b:[268.6,267.5,260.1,249.2,240.9,237.4],r:[374.5,354.2,331.0,291.3,257.0,237.4],gr:[6.30,6.23,6.16,6.09,6.02,5.95],w:[97.99,99.01,100.85,103.76,106.60,108.42],bn:240},
+  ultra:{name:"ウルトラミラクルジャグラー",b:[267.5,261.1,256.0,242.7,233.2,216.3],r:[425.6,402.1,350.5,322.8,297.9,277.7],gr:[5.94,5.94,5.94,5.94,5.88,5.82],w:[97.88,98.99,100.67,102.99,105.50,109.14],bn:240,bigHeavy:true}
+};
+const PRESETS={even:[1,1,1,1,1,1]};
+const FIELDS=["g","b","r","rs","rc","gr","gg","diff"];
+const $=id=>document.getElementById(id);
+const blankTab=()=>({name:"",model:"my6",style:"aim",useRev:false,g:"",b:"",r:"",rs:"",rc:"",gr:"",gg:"",diff:""});
+let S={tabs:[blankTab()],cur:0,prior:"even",gph:"800",yen:"20",ig:"",ib:"",ir:""};
+
+const sel=$("model");
+Object.entries(MODELS).forEach(([k,m])=>{const o=document.createElement("option");o.value=k;o.textContent=m.name;sel.appendChild(o)});
+
+const toNum=v=>{const n=parseFloat(v);return isNaN(n)?null:n};
+const nonneg=v=>{const n=toNum(v);return n===null||n<0?null:Math.floor(n)};
+const fmtRate=(n,d)=>(n&&d)?"1/"+(d/n).toFixed(1):"–";
+const T=()=>S.tabs[S.cur];
+
+function save(){try{localStorage.setItem("jug-v3",JSON.stringify(S))}catch(e){}}
+function load(){
+  try{
+    const o=JSON.parse(localStorage.getItem("jug-v3")||"null");
+    if(o&&Array.isArray(o.tabs)&&o.tabs.length){S={...S,...o};if(S.prior!=="even"&&S.prior!=="island")S.prior="even";S.tabs=o.tabs.map(t=>({...blankTab(),...t}));if(S.cur>=S.tabs.length)S.cur=0;return}
+    const v2=JSON.parse(localStorage.getItem("jug-v2")||"null");
+    if(v2){const t=blankTab();["g","b","r","rs","rc","gr","gg"].forEach(k=>{if(v2[k]!=null)t[k]=v2[k]});if(v2.model&&MODELS[v2.model])t.model=v2.model;S.tabs=[t];if(v2.gph)S.gph=v2.gph}
+  }catch(e){}
+}
+
+/* ---------- priors ---------- */
+function islandPrior(m){
+  const G=nonneg(S.ig),R=nonneg(S.ir),B=nonneg(S.ib);
+  if(!G||R===null||G<1000)return null;
+  const x=m.r.map(r=>1/r);
+  const lo=Math.min(...x),hi=Math.max(...x);
+  let t=R/G;const clipped=t<=lo||t>=hi;
+  t=Math.min(Math.max(t,lo+1e-7),hi-1e-7);
+  const meanAt=l=>{const mx=Math.max(...x.map(v=>l*v));const w=x.map(v=>Math.exp(l*v-mx));const s=w.reduce((a,c)=>a+c,0);return {p:w.map(v=>v/s),m:w.reduce((a,c,i)=>a+c*x[i],0)/s}};
+  let a=-200000,b=200000;
+  for(let i=0;i<200;i++){const c=(a+b)/2;if(meanAt(c).m<t)a=c;else b=c}
+  return {p:meanAt((a+b)/2).p,G,B,R,clipped};
+}
+function getPrior(m){
+  if(S.prior==="island"){const ip=islandPrior(m);return ip?{p:ip.p,ip}:{p:PRESETS.even,ip:null,missing:true}}
+  return {p:PRESETS[S.prior]};
+}
+
+/* ---------- grape reverse calc ---------- */
+function reverseGrape(t,m,G,B,R){
+  const d=toNum(t.diff);if(d===null||!G)return null;
+  const cf=t.style==="aim"?1:2/3;
+  const other=B*(m.bn-0.75)+R*(96-0.75)+G*(3/7.3)+G*(2*cf/35);
+  const grapes=(d+3*G-other)/8;
+  const pr=1/7.3,pc=cf/35;
+  const sd=Math.sqrt(9*G*pr*(1-pr)+4*G*pc*(1-pc)+40*40)/8;
+  return {grapes,sd};
+}
+
+/* ---------- core ---------- */
+function posterior(t){
+  const m=MODELS[t.model];
+  const G=nonneg(t.g),B=nonneg(t.b),R=nonneg(t.r);
+  if(G===null||B===null||R===null||G<=0||B+R>G)return null;
+  const {p:pr}=getPrior(m);const ps=pr.reduce((a,c)=>a+c,0);
+  const RS=nonneg(t.rs),RC=nonneg(t.rc);
+  const useSplit=!!m.rs&&RS!==null&&RC!==null&&RS+RC===R;
+  const GR=nonneg(t.gr),GG=nonneg(t.gg);
+  const useCount=GR!==null&&GG!==null&&GG>0&&GR<=GG;
+  const rev=reverseGrape(t,m,G,B,R);
+  const useRev=!useCount&&t.useRev&&rev&&rev.grapes>0&&rev.grapes<G;
+  const logs=[];
+  for(let i=0;i<6;i++){
+    const pb=1/m.b[i];let L=B*Math.log(pb);
+    if(useSplit){const a=1/m.rs[i],c=1/m.rc[i];L+=RS*Math.log(a)+RC*Math.log(c)+(G-B-R)*Math.log(1-pb-a-c)}
+    else{const p=1/m.r[i];L+=R*Math.log(p)+(G-B-R)*Math.log(1-pb-p)}
+    const q=1/m.gr[i];
+    if(useCount)L+=GR*Math.log(q)+(GG-GR)*Math.log(1-q);
+    else if(useRev)L+=0.5*(rev.grapes*Math.log(q)+(G-rev.grapes)*Math.log(1-q));
+    L+=Math.log(pr[i]/ps);logs.push(L);
+  }
+  const mx=Math.max(...logs);let s=0;const e=logs.map(l=>{const v=Math.exp(l-mx);s+=v;return v});
+  const post=e.map(v=>v/s);
+  return {m,G,B,R,post,useSplit,useCount,useRev,rev,RS,RC,GR,GG};
+}
+
+/* ---------- UI ---------- */
+function renderTabs(){
+  const el=$("tabs");el.innerHTML="";
+  S.tabs.forEach((t,i)=>{const b=document.createElement("button");b.type="button";b.setAttribute("role","tab");b.setAttribute("aria-selected",i===S.cur?"true":"false");b.textContent=t.name||((i+1)+"台目");b.onclick=()=>{S.cur=i;syncForm();update()};el.appendChild(b)});
+  if(S.tabs.length<5){const a=document.createElement("button");a.type="button";a.className="add";a.textContent="＋台を追加";a.onclick=()=>{const nt=blankTab();nt.model=T().model;nt.style=T().style;S.tabs.push(nt);S.cur=S.tabs.length-1;syncForm();update()};el.appendChild(a)}
+  $("tdel").hidden=S.tabs.length<2;
+}
+function syncForm(){
+  const t=T();FIELDS.forEach(k=>$(k).value=t[k]??"");
+  $("tname").value=t.name||"";sel.value=t.model;$("useRev").checked=!!t.useRev;
+  ["gph","yen","ig","ib","ir"].forEach(k=>$(k).value=S[k]??"");
+  renderSpec();
+}
+function renderSpec(){
+  const m=MODELS[T().model];
+  const hasSplit=!!m.rs;
+  $("regNote").textContent=hasSplit?"単独REGとチェリー重複REGに分けると精度が上がります。合計がREG回数と一致したときだけ使います。("+m.splitNote+")":"この機種は単独/チェリー重複REGの信頼できる設定別数値が見つからないため、内訳は計算に使いません。";
+  $("rs").disabled=!hasSplit;$("rc").disabled=!hasSplit;document.querySelectorAll('button[data-t="rs"],button[data-t="rc"]').forEach(b=>b.disabled=!hasSplit);
+  let h="<tr><th>設定</th><th>BIG</th><th>REG</th><th>合算</th><th>ブドウ</th><th>機械割</th></tr>";
+  for(let i=0;i<6;i++){const c=1/(1/m.b[i]+1/m.r[i]);h+=`<tr><td>${i+1}</td><td>1/${m.b[i]}</td><td>1/${m.r[i]}</td><td>1/${c.toFixed(1)}</td><td>1/${m.gr[i].toFixed(2)}</td><td>${m.w[i].toFixed(1)}%</td></tr>`}
+  const ratio=k=>"×"+(m[k][0]/m[k][5]).toFixed(2);
+  h+=`<tr><td>差</td><td>${ratio("b")}</td><td>${ratio("r")}</td><td>–</td><td>${ratio("gr")}</td><td>–</td></tr>`;
+  if(hasSplit){h+="<tr><th>設定</th><th colspan='2'>単独REG</th><th colspan='3'>チェリーREG</th></tr>";for(let i=0;i<6;i++)h+=`<tr><td>${i+1}</td><td colspan="2">1/${m.rs[i]}</td><td colspan="3">1/${m.rc[i]}</td></tr>`}
+  $("spec").innerHTML=h;
+  $("specNote").textContent="「差」は設定1→6で何倍当たりやすくなるか。数字が大きいほど設定判別に効きます。機械割はチェリー狙い条件、ブドウは推定値。"+(m.bigHeavy?"この機種は設定6でもBIGとREGが1:1ではなく、BIGにも設定差があります。":"");
+}
+
+function update(){
+  renderTabs();
+  const t=T(),m=MODELS[t.model];
+  const G=nonneg(t.g),B=nonneg(t.b),R=nonneg(t.r);
+  $("rb").textContent=fmtRate(B,G);$("rr").textContent=fmtRate(R,G);
+  $("rc2").textContent=(G&&B!==null&&R!==null&&B+R>0)?"合算 "+fmtRate(B+R,G)+"(BIG:REG = "+B+":"+R+")":"";
+  $("rg").textContent=fmtRate(nonneg(t.gr),nonneg(t.gg));
+  document.querySelectorAll("#style button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.s===t.style?"true":"false"));
+  document.querySelectorAll("#seg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.p===S.prior?"true":"false"));
+
+  // prior line + island
+  const pri=getPrior(m);const ps=pri.p.reduce((a,c)=>a+c,0);
+  const pct=pri.p.map((v,i)=>"設定"+(i+1)+" "+Math.round(v/ps*100)+"%").join("、");
+  const ip=islandPrior(m);
+  if(ip){
+    let w=0;ip.p.forEach((p,i)=>w+=p*m.w[i]);
+    $("islandOut").textContent=`シマのREG ${fmtRate(ip.R,ip.G)}、合算 ${ip.B!==null?fmtRate(ip.B+ip.R,ip.G):"–"}。推定の平均機械割は約${w.toFixed(1)}%です。`+(ip.clipped?"(REG確率が設定1〜6の範囲外のため端に寄せています)":"")+(ip.G<10000?" 合計G数が少ないので推定はブレやすいです。":"");
+  }else $("islandOut").textContent="同じ機種のシマ合計を入れるとシマの状況を表示します(合計1000G以上)。";
+  $("priorline").textContent=S.prior==="even"?"設定1〜6が同じ割合で入っている前提。データだけで判断します。"
+    :S.prior==="island"?(pri.missing?"シマのデータが未入力なので、均等で計算しています。下の「シマのデータを入れる」から入力してください。":"シマのデータから推定した割合:"+pct)
+    :"";
+
+  // reverse grape display
+  const rev=(G&&B!==null&&R!==null)?reverseGrape(t,m,G,B,R):null;
+  if(rev&&rev.grapes>0){
+    const lo=G/(rev.grapes+rev.sd),hi=G/Math.max(1,rev.grapes-rev.sd);
+    let near=1,bd=9;m.gr.forEach((g,i)=>{const d=Math.abs(g-G/rev.grapes);if(d<bd){bd=d;near=i+1}});
+    $("revOut").textContent=`推定ブドウ 約${Math.round(rev.grapes)}回(1/${(G/rev.grapes).toFixed(2)})。ブレ幅の目安は1/${lo.toFixed(2)}〜1/${hi.toFixed(2)}。数値上は設定${near}のブドウに一番近いですが、幅が広いので単独では判断しないでください。`;
+  }else $("revOut").textContent=toNum(t.diff)!==null?"計算できませんでした。総回転数・BIG・REG・差枚を確認してください。":"差枚を入れると推定ブドウ確率を表示します。";
+
+  const d=posterior(t);
+  render(d,t);
+  renderCompare();
+  save();
+}
+
+function render(d,t){
+  const bars=$("bars");
+  const clear=()=>{["es","ev","eh","ey","e100","ecur"].forEach(k=>$(k).textContent="–")};
+  if(!d){
+    $("p56").innerHTML="–<small>%</small>";$("p4up").textContent="設定4以上 –%";$("lamp").classList.remove("on");
+    $("verdict").textContent="総回転数・BIG・REGを入れてください。";
+    bars.innerHTML=[1,2,3,4,5,6].map(s=>`<div class="row"><b>設定${s}</b><div class="track"><div class="fill"></div></div><span>–</span></div>`).join("");
+    clear();$("guide").innerHTML="<p>データを入れると表示されます。</p>";$("splitMsg").textContent="";return;
+  }
+  const {m,G,B,R,post,useSplit,useCount,useRev,RS,RC}=d;
+  $("splitMsg").textContent=(m.rs&&(RS!==null||RC!==null))?(useSplit?"内訳を計算に使っています。":"単独とチェリーの合計がREG回数と一致していないので、内訳は使っていません。"):"";
+  const p56=(post[4]+post[5])*100,p4=(post[3]+post[4]+post[5])*100;
+  $("p56").innerHTML=p56.toFixed(0)+"<small>%</small>";$("p4up").textContent="設定4以上 "+p4.toFixed(0)+"%";
+  $("lamp").classList.toggle("on",p56>=50);
+  const max=Math.max(...post);
+  bars.innerHTML=post.map((p,i)=>`<div class="row${i>=4?" hi":""}"><b>設定${i+1}</b><div class="track"><div class="fill" style="width:${(p/max*100).toFixed(1)}%"></div></div><span>${(p*100).toFixed(1)}%</span></div>`).join("");
+  let w=0,es=0,p100=0;post.forEach((p,i)=>{w+=p*m.w[i];es+=p*(i+1);p100+=p*(1-Math.pow(1-1/m.b[i]-1/m.r[i],100))});
+  $("es").textContent=es.toFixed(2);
+  $("ev").innerHTML=w.toFixed(1)+"<small>%</small>";
+  const gph=nonneg(S.gph)||800,yen=toNum(S.yen)||20,eh=gph*3*(w/100-1);
+  $("eh").innerHTML=(eh>=0?"+":"")+Math.round(eh)+"<small>枚</small>";
+  const ey=eh*yen;$("ey").innerHTML=(ey>=0?"+":"−")+Math.abs(Math.round(ey)).toLocaleString()+"<small>円</small>";
+  $("e100").innerHTML=(p100*100).toFixed(0)+"<small>%</small>";
+  const diff=toNum(t.diff);
+  $("ecur").innerHTML=diff!==null?((3*G+diff)/(3*G)*100).toFixed(1)+"<small>%</small>":"–";
+
+  let v;
+  if(p4>=70)v="高設定寄り。続行が有力です。";
+  else if(p4>=50)v="やや高設定寄り。様子を見ながら続行。";
+  else if(p4>=30)v="中間〜低設定の可能性もあり、判断は保留。";
+  else v="低設定寄り。ヤメも検討。";
+  if(G<2000)v+=" ただし2000G未満なのでまだブレが大きいです。";
+  else if(G<4000)v+=" 4000G前後まで回すと判断が固まりやすくなります。";
+  if(!useCount&&!useRev&&p56>=40&&Math.abs(m.r[4]-m.r[5])<1)v+=" この機種は設定5と6のREGが同じなので、ブドウなしでは区別がほぼできません。";
+  if(eh<0&&p4>=50)v+=" ただし期待差枚はまだマイナスです。";
+  $("verdict").textContent=v;
+
+  const line=m.r[3],need=g=>Math.ceil(g/line);
+  const L=[`<p>今のREGは${R?"1/"+(G/R).toFixed(0):"0回"}。この機種の高設定の目安は、設定4のREG確率1/${line}より良いペースです。</p>`];
+  if(G<3000)L.push(`<p>3000G時点でREG ${need(3000)}回以上なら高設定の線が残ります(今あと${Math.max(0,need(3000)-R)}回)。</p>`);
+  if(G<5000)L.push(`<p>5000G時点ならREG ${need(5000)}回以上が目安です(今あと${Math.max(0,need(5000)-R)}回)。</p>`);
+  else L.push(`<p>5000G以上回っているので、この数字はかなり信頼できます。</p>`);
+  L.push(m.bigHeavy?`<p>この機種はBIGにも設定差があるので、BIGが多いことも高設定の材料になります。</p>`:`<p>BIGは設定差が小さいので、BIGが多いだけで高設定とは言えません。</p>`);
+  $("guide").innerHTML=L.join("");
+}
+
+function renderCompare(){
+  const sec=$("cmpSec");
+  const rows=S.tabs.map((t,i)=>({t,i,d:posterior(t)})).filter(x=>x.d);
+  if(S.tabs.length<2||rows.length<1){sec.hidden=true;return}
+  sec.hidden=false;
+  let h="<tr><th>台</th><th>G数</th><th>REG</th><th>5・6</th><th>4以上</th><th>期待割</th></tr>";
+  rows.forEach(({t,i,d})=>{let w=0;d.post.forEach((p,k)=>w+=p*d.m.w[k]);
+    h+=`<tr><td>${t.name||((i+1)+"台目")}</td><td>${d.G}</td><td>${fmtRate(d.R,d.G)}</td><td>${((d.post[4]+d.post[5])*100).toFixed(0)}%</td><td>${((d.post[3]+d.post[4]+d.post[5])*100).toFixed(0)}%</td><td>${w.toFixed(1)}%</td></tr>`});
+  $("cmp").innerHTML=h;
+}
+
+/* ---------- events ---------- */
+const GLOBAL=["ig","ib","ir"];
+document.querySelectorAll("button[data-t]").forEach(btn=>btn.addEventListener("click",()=>{
+  const k=btn.dataset.t,obj=GLOBAL.includes(k)?S:T();
+  let v=(parseInt(obj[k],10)||0)+parseInt(btn.dataset.d,10);
+  if(!btn.dataset.neg)v=Math.max(0,v);
+  obj[k]=String(v);$(k).value=v;update();
+  if(navigator.vibrate){try{navigator.vibrate(10)}catch(e){}}
+}));
+FIELDS.forEach(k=>$(k).addEventListener("input",()=>{T()[k]=$(k).value;update()}));
+["gph","yen","ig","ib","ir"].forEach(k=>$(k).addEventListener("input",()=>{S[k]=$(k).value;update()}));
+$("tname").addEventListener("input",()=>{T().name=$("tname").value;update()});
+$("tdel").addEventListener("click",()=>{if(S.tabs.length<2)return;S.tabs.splice(S.cur,1);S.cur=Math.max(0,S.cur-1);syncForm();update()});
+sel.addEventListener("change",()=>{T().model=sel.value;renderSpec();update()});
+document.querySelectorAll("#seg button").forEach(b=>b.addEventListener("click",()=>{S.prior=b.dataset.p;if(S.prior==="island")$("dIsland").open=true;update()}));
+document.querySelectorAll("#style button").forEach(b=>b.addEventListener("click",()=>{T().style=b.dataset.s;update()}));
+$("useRev").addEventListener("change",()=>{T().useRev=$("useRev").checked;update()});
+$("reset").addEventListener("click",()=>{const t=T();FIELDS.forEach(k=>t[k]="");t.useRev=false;syncForm();update()});
+
+load();syncForm();update();
+if("serviceWorker" in navigator){window.addEventListener("load",()=>{navigator.serviceWorker.register("sw.js").catch(()=>{})})}
+</script>
+</body>
+</html>
