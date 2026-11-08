@@ -5,278 +5,356 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ジャグラー設定判別</title>
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#2a1838">
+<meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="ジャグ判別">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#efe9f6; --panel:#ffffff; --ink:#2a1838; --sub:#6d5a80; --line:#d9cde6;
-  --lamp:#ff2d8a; --bar:#8a4fc4; --bar-hi:#ff2d8a; --field:#f6f1fb;
+  --bg:#f2f2f7; --card:#ffffff; --label:#000000; --label2:rgba(60,60,67,.6); --label3:rgba(60,60,67,.3);
+  --sep:rgba(60,60,67,.29); --fill:rgba(118,118,128,.12); --fill2:rgba(118,118,128,.2);
+  --blue:#007aff; --pink:#ff2d55; --green:#34c759; --orange:#ff9500; --red:#ff3b30; --purple:#af52de;
+  --navbg:rgba(242,242,247,.8);
   color-scheme:light; box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
-    --bg:#1c1026; --panel:#2a1a38; --ink:#f5ecff; --sub:#b9a6cc; --line:#43305a;
-    --lamp:#ff3d95; --bar:#a874e0; --bar-hi:#ff3d95; --field:#22152f; color-scheme:dark;
+    --bg:#000000; --card:#1c1c1e; --label:#ffffff; --label2:rgba(235,235,245,.6); --label3:rgba(235,235,245,.3);
+    --sep:rgba(84,84,88,.65); --fill:rgba(118,118,128,.24); --fill2:rgba(118,118,128,.36);
+    --blue:#0a84ff; --pink:#ff375f; --green:#30d158; --orange:#ff9f0a; --red:#ff453a; --purple:#bf5af2;
+    --navbg:rgba(0,0,0,.75); color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#1c1026; --panel:#2a1a38; --ink:#f5ecff; --sub:#b9a6cc; --line:#43305a;
-  --lamp:#ff3d95; --bar:#a874e0; --bar-hi:#ff3d95; --field:#22152f; color-scheme:dark;
+  --bg:#000000; --card:#1c1c1e; --label:#ffffff; --label2:rgba(235,235,245,.6); --label3:rgba(235,235,245,.3);
+  --sep:rgba(84,84,88,.65); --fill:rgba(118,118,128,.24); --fill2:rgba(118,118,128,.36);
+  --blue:#0a84ff; --pink:#ff375f; --green:#30d158; --orange:#ff9f0a; --red:#ff453a; --purple:#bf5af2;
+  --navbg:rgba(0,0,0,.75); color-scheme:dark;
 }
 *,*::before,*::after{box-sizing:inherit}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Hiragino Sans","Yu Gothic",sans-serif;font-size:16px;line-height:1.6;-webkit-text-size-adjust:100%}
-.wrap{max-width:520px;margin:0 auto;padding:16px 16px 40px}
-h1{font-family:"Dela Gothic One","Hiragino Sans",sans-serif;font-weight:400;font-size:22px;margin:4px 0 2px;letter-spacing:.02em}
-.lead{color:var(--sub);font-size:13px;margin:0 0 12px}
+body{margin:0;background:var(--bg);color:var(--label);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",system-ui,sans-serif;font-size:17px;line-height:1.35;-webkit-text-size-adjust:100%;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:560px;margin:0 auto;padding:0 16px 48px}
+button{font-family:inherit}
+input,select{font-family:inherit}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px;border-radius:8px}
 
-.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:10px}
-.tabs button{flex:0 0 auto;padding:8px 14px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font:inherit;font-size:14px;font-weight:800;cursor:pointer;white-space:nowrap}
-.tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-.tabs .add{color:var(--sub);font-weight:700}
-.tabmeta{display:flex;gap:8px;margin-bottom:10px}
-.tabmeta input{flex:1;min-width:0;font:inherit;font-size:14px;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
-.tabmeta button{flex:0 0 auto;font:inherit;font-size:13px;color:var(--sub);background:transparent;border:1px solid var(--line);border-radius:10px;padding:0 12px;cursor:pointer}
+/* large title */
+.large{font-size:34px;font-weight:700;letter-spacing:.01em;margin:12px 4px 4px}
+.subtitle{font-size:15px;color:var(--label2);margin:0 4px 14px}
 
-.model{width:100%;font:inherit;font-size:17px;font-weight:800;color:var(--ink);background:var(--panel);border:2px solid var(--ink);border-radius:14px;padding:12px;margin-bottom:12px;appearance:none;-webkit-appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--ink) 50%),linear-gradient(135deg,var(--ink) 50%,transparent 50%);background-position:calc(100% - 22px) 50%,calc(100% - 16px) 50%;background-size:6px 6px;background-repeat:no-repeat}
+/* machine chips */
+.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 10px;margin:0 -2px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chips button{flex:0 0 auto;height:34px;padding:0 14px;border-radius:17px;border:0;background:var(--fill);color:var(--label);font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap}
+.chips button[aria-selected="true"]{background:var(--blue);color:#fff}
+.chips .add{background:transparent;color:var(--blue)}
 
-.lampbox{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:18px 16px 16px;display:flex;gap:16px;align-items:center}
-.lamp{flex:0 0 96px;height:96px;border-radius:50%;display:grid;place-items:center;background:#3a2a44;transition:background .5s}
-.lamp span{font-family:"Dela Gothic One",sans-serif;font-size:21px;line-height:1;color:#5b4766;transition:color .5s,text-shadow .5s}
-.lamp.on{background:radial-gradient(circle at 50% 45%,#fff 0%,var(--lamp) 55%,#a0004e 100%)}
-.lamp.on span{color:#fff;text-shadow:0 0 8px #fff}
-.lampinfo{flex:1;min-width:0}
-.big{font-family:"Dela Gothic One",sans-serif;font-size:40px;line-height:1.05}
-.big small{font-size:18px}
-.lampinfo p{margin:2px 0 0;font-size:13px;color:var(--sub)}
-.verdict{margin-top:12px;padding:10px 12px;border-radius:12px;background:var(--field);font-size:14px;font-weight:700}
+/* group (inset grouped list) */
+.hdr{font-size:13px;color:var(--label2);margin:22px 16px 6px;letter-spacing:.02em}
+.ftr{font-size:13px;color:var(--label2);margin:6px 16px 0;line-height:1.4}
+.group{background:var(--card);border-radius:10px;overflow:hidden}
+.cell{display:flex;align-items:center;gap:12px;min-height:44px;padding:8px 16px;position:relative}
+.cell+.cell::before,.cell+details::before,details+.cell::before,details+details::before{content:"";position:absolute;top:0;left:16px;right:0;height:.5px;background:var(--sep)}
+details{position:relative}
+.cell .lbl{flex:1;min-width:0}
+.cell .lbl small{display:block;font-size:13px;color:var(--label2);margin-top:1px}
+.cell .val{color:var(--label2);text-align:right}
+.textin{flex:1;min-width:0;border:0;background:transparent;color:var(--label);font-size:17px;padding:0;outline:none}
+.textin::placeholder{color:var(--label3)}
+.danger{color:var(--red);background:none;border:0;font-size:17px;padding:0;cursor:pointer}
 
-section{margin-top:18px}
-h2{font-size:15px;font-weight:800;margin:0 0 8px}
-.grid{display:grid;gap:10px}
-.field{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.field label{flex:0 0 76px;font-weight:700;font-size:15px}
-.field .rate{font-size:12px;color:var(--sub);flex:0 0 60px;text-align:right}
-.step{display:flex;align-items:center;gap:6px;flex:1;min-width:0}
-.step input{width:100%;min-width:0;text-align:center;font:inherit;font-size:20px;font-weight:800;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:10px;padding:6px 4px}
-.step button{flex:0 0 40px;height:40px;border-radius:10px;border:1px solid var(--line);background:var(--field);color:var(--ink);font-size:20px;font-weight:800;cursor:pointer}
-.step button:active,.quick button:active{transform:scale(.94)}
-.quick{display:flex;gap:6px;width:100%}
-.quick button{flex:1;height:32px;border-radius:8px;border:1px solid var(--line);background:var(--field);color:var(--sub);font:inherit;font-size:13px;font-weight:800;cursor:pointer}
-input:focus-visible,button:focus-visible,summary:focus-visible,select:focus-visible{outline:3px solid var(--lamp);outline-offset:2px}
+/* picker row */
+.picker{position:relative}
+.picker select{position:absolute;inset:0;opacity:0;width:100%;cursor:pointer;font-size:17px}
+.chev::after{content:"";display:inline-block;width:8px;height:8px;border-right:2px solid var(--label3);border-bottom:2px solid var(--label3);transform:rotate(-45deg);margin-left:8px;position:relative;top:-1px}
 
-details{background:var(--panel);border:1px solid var(--line);border-radius:14px;margin-top:10px}
-summary{padding:12px;font-weight:700;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:8px}
+/* hero */
+.hero{background:var(--card);border-radius:16px;padding:18px 18px 16px;display:flex;align-items:center;gap:18px}
+.ringwrap{position:relative;flex:0 0 120px;height:120px}
+.ringwrap svg{width:120px;height:120px;transform:rotate(-90deg)}
+.ringwrap circle{fill:none;stroke-linecap:round;transition:stroke-dashoffset .6s cubic-bezier(.2,.8,.2,1)}
+.trackA{stroke:var(--fill);stroke-width:12}
+#ringA{stroke:var(--pink);stroke-width:12;stroke-dasharray:326.73;stroke-dashoffset:326.73}
+.trackB{stroke:var(--fill);stroke-width:10}
+#ringB{stroke:var(--purple);stroke-width:10;stroke-dasharray:251.33;stroke-dashoffset:251.33}
+.heroinfo{flex:1;min-width:0}
+.kpi{display:flex;flex-direction:column;gap:10px}
+.kpi .k{font-size:13px;color:var(--label2);display:flex;align-items:center;gap:6px}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.kpi .v{font-size:34px;font-weight:700;line-height:1.05;font-variant-numeric:tabular-nums}
+.kpi .v small{font-size:17px;font-weight:600;margin-left:1px}
+.kpi .v2{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}
+.verdict{margin-top:10px;background:var(--card);border-radius:12px;padding:12px 16px;font-size:15px;line-height:1.45}
+
+/* stepper rows */
+.srow{display:grid;grid-template-columns:1fr auto;align-items:center;gap:6px 12px;padding:10px 16px;position:relative}
+.srow+.srow::before,.srow+.cell::before,.cell+.srow::before{content:"";position:absolute;top:0;left:16px;right:0;height:.5px;background:var(--sep)}
+.srow .name{font-size:17px}
+.srow .name small{display:block;font-size:13px;color:var(--label2);font-variant-numeric:tabular-nums}
+.ctl{display:flex;align-items:center;gap:10px}
+.ctl input{width:78px;text-align:right;border:0;background:transparent;color:var(--label);font-size:22px;font-weight:600;font-variant-numeric:tabular-nums;padding:0;outline:none}
+.ctl input::placeholder{color:var(--label3);font-weight:400}
+.ctl input:disabled{opacity:.4}
+.stepper{display:flex;background:var(--fill);border-radius:9px;overflow:hidden;height:32px}
+.stepper button{width:47px;border:0;background:transparent;color:var(--label);font-size:22px;line-height:1;cursor:pointer;position:relative}
+.stepper button+button::before{content:"";position:absolute;left:0;top:7px;bottom:7px;width:1px;background:var(--sep)}
+.stepper button:active{background:var(--fill2)}
+.stepper button:disabled{color:var(--label3)}
+.quick{grid-column:1/-1;display:flex;gap:8px;justify-content:flex-end}
+.quick button{height:28px;padding:0 12px;border-radius:14px;border:0;background:var(--fill);color:var(--blue);font-size:13px;font-weight:600;cursor:pointer;font-variant-numeric:tabular-nums}
+.quick button:active{background:var(--fill2)}
+
+/* disclosure */
+summary{list-style:none;cursor:pointer;display:flex;align-items:center;min-height:44px;padding:8px 16px;gap:12px}
 summary::-webkit-details-marker{display:none}
-summary::after{content:"＋";color:var(--sub)}
-details[open] summary::after{content:"－"}
-details .inner{padding:0 12px 12px;display:grid;gap:10px}
-details .inner .field{border:none;padding:0;background:none}
-.note{font-size:12px;color:var(--sub);margin:0}
-.result{font-size:14px;font-weight:700;background:var(--field);border-radius:10px;padding:8px 10px}
-.check{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700}
-.check input{width:20px;height:20px}
-.mini{display:flex;gap:6px}
-.mini button{flex:1;padding:8px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font:inherit;font-size:13px;font-weight:700;cursor:pointer}
-.mini button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+summary .lbl{flex:1}
+summary::after{content:"";width:8px;height:8px;border-right:2px solid var(--label3);border-bottom:2px solid var(--label3);transform:rotate(-45deg);transition:transform .2s}
+details[open]>summary::after{transform:rotate(45deg)}
+.inner{padding:0 0 4px}
+.inner .note{font-size:13px;color:var(--label2);padding:0 16px 8px;margin:0;line-height:1.45}
+.result{margin:4px 16px 10px;padding:10px 12px;border-radius:10px;background:var(--fill);font-size:15px;line-height:1.45}
 
-.seg{display:flex;flex-wrap:wrap;gap:6px}
-.seg button{flex:1 1 auto;padding:8px 10px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font:inherit;font-size:13px;font-weight:700;cursor:pointer}
-.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-.priorline{font-size:12px;color:var(--sub);margin:6px 0 0}
+/* segmented control */
+.seg{display:flex;background:var(--fill);border-radius:9px;padding:2px;gap:0}
+.seg button{flex:1;height:30px;border:0;border-radius:7px;background:transparent;color:var(--label);font-size:13px;font-weight:600;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--card);box-shadow:0 3px 8px rgba(0,0,0,.12),0 3px 1px rgba(0,0,0,.04)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .seg button[aria-pressed="true"]{background:#636366}}
+:root[data-theme="dark"] .seg button[aria-pressed="true"]{background:#636366}
+.segcell{padding:10px 16px}
 
-.bars{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px}
-.row{display:grid;grid-template-columns:44px 1fr 52px;align-items:center;gap:8px;padding:4px 0}
-.row b{font-size:14px}
-.track{height:18px;border-radius:9px;background:var(--field);overflow:hidden}
-.fill{height:100%;border-radius:9px;background:var(--bar);width:0;transition:width .4s}
-.row.hi .fill{background:var(--bar-hi)}
-.row span{text-align:right;font-weight:800;font-size:14px}
-.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
-.stat{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
-.stat .k{font-size:12px;color:var(--sub)}
-.stat .v{font-family:"Dela Gothic One",sans-serif;font-size:22px;line-height:1.2}
-.stat .v small{font-size:13px}
-.ghrow{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-top:10px;font-size:13px;color:var(--sub)}
-.ghrow input{width:70px;font:inherit;font-weight:700;text-align:center;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:8px;padding:4px}
-.guide{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;font-size:14px}
-.guide p{margin:0 0 6px}.guide p:last-child{margin:0}
+/* switch */
+.switch{position:relative;width:51px;height:31px;flex:0 0 auto}
+.switch input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer;z-index:1}
+.switch span{position:absolute;inset:0;border-radius:16px;background:var(--fill2);transition:background .2s}
+.switch span::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 3px 8px rgba(0,0,0,.15),0 3px 1px rgba(0,0,0,.06);transition:transform .2s}
+.switch input:checked+span{background:var(--green)}
+.switch input:checked+span::after{transform:translateX(20px)}
 
-.compare{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow-x:auto}
-.tblwrap{overflow-x:auto;padding:0 12px 12px}
-table{border-collapse:collapse;width:100%;font-size:13px;white-space:nowrap}
-th,td{padding:6px;text-align:right;border-bottom:1px solid var(--line)}
+/* bars */
+.bars{padding:6px 16px 10px}
+.bar{display:grid;grid-template-columns:48px 1fr 54px;align-items:center;gap:10px;height:32px}
+.bl{font-size:15px}
+.bv{text-align:right;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+.track{height:8px;border-radius:4px;background:var(--fill);overflow:hidden}
+.fill{height:100%;border-radius:4px;background:var(--blue);width:0;transition:width .5s cubic-bezier(.2,.8,.2,1)}
+.bar.hi .fill{background:var(--pink)}
+
+/* stat tiles */
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.tile{background:var(--card);border-radius:12px;padding:12px 14px}
+.tile .k{font-size:13px;color:var(--label2)}
+.tile .v{font-size:22px;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums}
+.tile .v small{font-size:15px;font-weight:600;margin-left:1px}
+.inlinein{width:72px;text-align:right;border:0;background:transparent;color:var(--blue);font-size:17px;padding:0;outline:none;font-variant-numeric:tabular-nums}
+
+.guide p{margin:0;padding:11px 16px;font-size:15px;line-height:1.45;position:relative}
+.guide p+p::before{content:"";position:absolute;top:0;left:16px;right:0;height:.5px;background:var(--sep)}
+
+.tblwrap{overflow-x:auto;padding:0 16px 10px}
+table{border-collapse:collapse;width:100%;font-size:13px;white-space:nowrap;font-variant-numeric:tabular-nums}
+th,td{padding:7px 6px;text-align:right;border-bottom:.5px solid var(--sep)}
 th:first-child,td:first-child{text-align:left}
-th{color:var(--sub);font-weight:700}
-.compare table{min-width:100%}
-.src{padding:0 12px 12px;font-size:12px;color:var(--sub);line-height:1.8}
+th{color:var(--label2);font-weight:600}
+.src{padding:0 16px 10px;font-size:13px;color:var(--label2);line-height:1.6}
 .src p{margin:0 0 8px}
-.src b{color:var(--ink)}
-.reset{margin-top:18px;width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--sub);font:inherit;font-weight:700;cursor:pointer}
-footer{font-size:11px;color:var(--sub);margin-top:16px;line-height:1.7}
+.src b{color:var(--label);font-weight:600}
+.btnrow{margin-top:22px;background:var(--card);border-radius:10px}
+.btnrow button{width:100%;height:44px;border:0;background:transparent;color:var(--red);font-size:17px;cursor:pointer}
+footer{font-size:12px;color:var(--label2);margin:16px 16px 0;line-height:1.5}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>ジャグラー設定判別</h1>
-  <p class="lead">6号機ジャグラー10機種対応。最大5台まで並べて比べられます。</p>
+  <h1 class="large">設定判別</h1>
+  <p class="subtitle">6号機ジャグラー10機種・最大5台</p>
 
-  <div class="tabs" id="tabs" role="tablist" aria-label="台"></div>
-  <div class="tabmeta">
-    <input id="tname" maxlength="12" placeholder="台番号・メモ(例:137番 角台)" aria-label="台番号・メモ">
-    <button type="button" id="tdel">この台を削除</button>
+  <div class="chips" id="tabs" role="tablist" aria-label="台"></div>
+
+  <div class="group">
+    <div class="cell picker">
+      <span class="lbl">機種</span>
+      <span class="val chev" id="modelName"></span>
+      <select id="model" aria-label="機種"></select>
+    </div>
+    <div class="cell">
+      <input class="textin" id="tname" maxlength="12" placeholder="台番号・メモ" aria-label="台番号・メモ">
+      <button type="button" class="danger" id="tdel">削除</button>
+    </div>
   </div>
 
-  <label for="model" class="note" style="display:block;margin-bottom:4px">機種</label>
-  <select id="model" class="model"></select>
-
-  <div class="lampbox" aria-live="polite">
-    <div class="lamp" id="lamp"><span>判別</span></div>
-    <div class="lampinfo">
-      <div class="big" id="p56">–<small>%</small></div>
-      <p>設定5・6の可能性</p>
-      <p id="p4up">設定4以上 –%</p>
+  <div class="hdr">判別結果</div>
+  <div class="hero" aria-live="polite">
+    <div class="ringwrap" aria-hidden="true">
+      <svg viewBox="0 0 120 120">
+        <circle class="trackA" cx="60" cy="60" r="52"/><circle id="ringA" cx="60" cy="60" r="52"/>
+        <circle class="trackB" cx="60" cy="60" r="40"/><circle id="ringB" cx="60" cy="60" r="40"/>
+      </svg>
+    </div>
+    <div class="heroinfo kpi">
+      <div><div class="k"><span class="dot" style="background:var(--pink)"></span>設定5・6</div><div class="v" id="p56">–<small>%</small></div></div>
+      <div><div class="k"><span class="dot" style="background:var(--purple)"></span>設定4以上</div><div class="v2" id="p4up">–%</div></div>
     </div>
   </div>
   <div class="verdict" id="verdict">総回転数・BIG・REGを入れてください。</div>
 
-  <section>
-    <h2>台データ</h2>
-    <div class="grid">
-      <div class="field"><label for="g">総回転数</label>
-        <div class="step"><button type="button" data-t="g" data-d="-100" aria-label="100減らす">−</button><input id="g" type="number" inputmode="numeric" min="0" placeholder="0"><button type="button" data-t="g" data-d="100" aria-label="100増やす">＋</button></div>
-        <div class="quick"><button type="button" data-t="g" data-d="10">+10</button><button type="button" data-t="g" data-d="50">+50</button><button type="button" data-t="g" data-d="1000">+1000</button></div>
-      </div>
-      <div class="field"><label for="b">BIG</label>
-        <div class="step"><button type="button" data-t="b" data-d="-1" aria-label="1減らす">−</button><input id="b" type="number" inputmode="numeric" min="0" placeholder="0"><button type="button" data-t="b" data-d="1" aria-label="1増やす">＋</button></div>
-        <div class="rate" id="rb">–</div>
-      </div>
-      <div class="field"><label for="r">REG</label>
-        <div class="step"><button type="button" data-t="r" data-d="-1" aria-label="1減らす">−</button><input id="r" type="number" inputmode="numeric" min="0" placeholder="0"><button type="button" data-t="r" data-d="1" aria-label="1増やす">＋</button></div>
-        <div class="rate" id="rr">–</div>
-      </div>
-      <p class="note" id="rc2"></p>
+  <div class="hdr">台データ</div>
+  <div class="group">
+    <div class="srow">
+      <label class="name" for="g">総回転数</label>
+      <div class="ctl"><input id="g" type="number" inputmode="numeric" min="0" placeholder="0"><div class="stepper"><button type="button" data-t="g" data-d="-100" aria-label="100減らす">−</button><button type="button" data-t="g" data-d="100" aria-label="100増やす">＋</button></div></div>
+      <div class="quick"><button type="button" data-t="g" data-d="10">+10</button><button type="button" data-t="g" data-d="50">+50</button><button type="button" data-t="g" data-d="1000">+1000</button></div>
     </div>
+    <div class="srow">
+      <label class="name" for="b">BIG<small id="rb">–</small></label>
+      <div class="ctl"><input id="b" type="number" inputmode="numeric" min="0" placeholder="0"><div class="stepper"><button type="button" data-t="b" data-d="-1" aria-label="1減らす">−</button><button type="button" data-t="b" data-d="1" aria-label="1増やす">＋</button></div></div>
+    </div>
+    <div class="srow">
+      <label class="name" for="r">REG<small id="rr">–</small></label>
+      <div class="ctl"><input id="r" type="number" inputmode="numeric" min="0" placeholder="0"><div class="stepper"><button type="button" data-t="r" data-d="-1" aria-label="1減らす">−</button><button type="button" data-t="r" data-d="1" aria-label="1増やす">＋</button></div></div>
+    </div>
+  </div>
+  <p class="ftr" id="rc2"></p>
 
+  <div class="hdr">追加データ(任意)</div>
+  <div class="group">
     <details id="dRev">
-      <summary>グラフの差枚からブドウを推定</summary>
+      <summary><span class="lbl">グラフの差枚からブドウを推定</span></summary>
       <div class="inner">
-        <p class="note">ブドウを数えていなくても、データカウンターのグラフの最終差枚から逆算できます。リプレイの引きムラやグラフの読み取り誤差で数百枚単位のズレが出るので、あくまで参考値です。</p>
-        <div class="field"><label for="diff">最終差枚</label><div class="step"><button type="button" data-t="diff" data-d="-10" data-neg="1" aria-label="10減らす">−</button><input id="diff" type="number" inputmode="text" placeholder="例:500 / -300"><button type="button" data-t="diff" data-d="10" data-neg="1" aria-label="10増やす">＋</button></div><div class="quick"><button type="button" data-t="diff" data-d="-100" data-neg="1">−100</button><button type="button" data-t="diff" data-d="100" data-neg="1">+100</button><button type="button" data-t="diff" data-d="500" data-neg="1">+500</button></div></div>
-        <div class="mini" id="style" role="group" aria-label="打ち方">
-          <button type="button" data-s="aim">チェリー狙い</button>
-          <button type="button" data-s="free">適当打ち</button>
+        <p class="note">ブドウを数えていなくても、グラフの最終差枚から逆算できます。リプレイの引きムラや読み取り誤差があるので参考値です。</p>
+        <div class="srow">
+          <label class="name" for="diff">最終差枚</label>
+          <div class="ctl"><input id="diff" type="number" inputmode="text" placeholder="0"><div class="stepper"><button type="button" data-t="diff" data-d="-10" data-neg="1" aria-label="10減らす">−</button><button type="button" data-t="diff" data-d="10" data-neg="1" aria-label="10増やす">＋</button></div></div>
+          <div class="quick"><button type="button" data-t="diff" data-d="-100" data-neg="1">−100</button><button type="button" data-t="diff" data-d="100" data-neg="1">+100</button><button type="button" data-t="diff" data-d="500" data-neg="1">+500</button></div>
         </div>
+        <div class="segcell"><div class="seg" id="style" role="group" aria-label="打ち方"><button type="button" data-s="aim">チェリー狙い</button><button type="button" data-s="free">適当打ち</button></div></div>
         <div class="result" id="revOut">差枚を入れると推定ブドウ確率を表示します。</div>
-        <label class="check"><input type="checkbox" id="useRev">推定ブドウを判別に使う(重みを半分にして反映)</label>
+        <div class="cell"><span class="lbl">判別に使う<small>重みを半分にして反映</small></span><label class="switch"><input type="checkbox" id="useRev" aria-label="推定ブドウを判別に使う"><span></span></label></div>
       </div>
     </details>
-
     <details id="dGrape">
-      <summary>ブドウ(数えている場合)</summary>
+      <summary><span class="lbl">ブドウ(数えている場合)</span></summary>
       <div class="inner">
-        <p class="note">数え始めてからのゲーム数を入れてください。こちらを入れると差枚からの推定より優先します。ブドウの設定差は小さいので、2000G以上数えると効いてきます。</p>
-        <div class="field"><label for="gr">ブドウ回数</label><div class="step"><button type="button" data-t="gr" data-d="-1" aria-label="1減らす">−</button><input id="gr" type="number" inputmode="numeric" placeholder="0"><button type="button" data-t="gr" data-d="1" aria-label="1増やす">＋</button></div><div class="quick"><button type="button" data-t="gr" data-d="5">+5</button><button type="button" data-t="gr" data-d="10">+10</button></div></div>
-        <div class="field"><label for="gg">数えたG数</label><div class="step"><button type="button" data-t="gg" data-d="-10" aria-label="10減らす">−</button><input id="gg" type="number" inputmode="numeric" placeholder="0"><button type="button" data-t="gg" data-d="10" aria-label="10増やす">＋</button></div><div class="rate" id="rg">–</div><div class="quick"><button type="button" data-t="gg" data-d="100">+100</button><button type="button" data-t="gg" data-d="1000">+1000</button></div></div>
+        <p class="note">差枚からの推定より優先します。設定差が小さいので2000G以上で効いてきます。</p>
+        <div class="srow">
+          <label class="name" for="gr">ブドウ回数</label>
+          <div class="ctl"><input id="gr" type="number" inputmode="numeric" min="0" placeholder="0"><div class="stepper"><button type="button" data-t="gr" data-d="-1" aria-label="1減らす">−</button><button type="button" data-t="gr" data-d="1" aria-label="1増やす">＋</button></div></div>
+          <div class="quick"><button type="button" data-t="gr" data-d="5">+5</button><button type="button" data-t="gr" data-d="10">+10</button></div>
+        </div>
+        <div class="srow">
+          <label class="name" for="gg">数えたG数<small id="rg">–</small></label>
+          <div class="ctl"><input id="gg" type="number" inputmode="numeric" min="0" placeholder="0"><div class="stepper"><button type="button" data-t="gg" data-d="-10" aria-label="10減らす">−</button><button type="button" data-t="gg" data-d="10" aria-label="10増やす">＋</button></div></div>
+          <div class="quick"><button type="button" data-t="gg" data-d="100">+100</button><button type="button" data-t="gg" data-d="1000">+1000</button></div>
+        </div>
       </div>
     </details>
-
     <details id="dReg">
-      <summary>REGの内訳(わかる場合)</summary>
+      <summary><span class="lbl">REGの内訳</span></summary>
       <div class="inner">
         <p class="note" id="regNote"></p>
-        <div class="field"><label for="rs">単独REG</label><div class="step"><button type="button" data-t="rs" data-d="-1" aria-label="1減らす">−</button><input id="rs" type="number" inputmode="numeric" placeholder="0"><button type="button" data-t="rs" data-d="1" aria-label="1増やす">＋</button></div></div>
-        <div class="field"><label for="rc">チェリーREG</label><div class="step"><button type="button" data-t="rc" data-d="-1" aria-label="1減らす">−</button><input id="rc" type="number" inputmode="numeric" placeholder="0"><button type="button" data-t="rc" data-d="1" aria-label="1増やす">＋</button></div></div>
+        <div class="srow">
+          <label class="name" for="rs">単独REG</label>
+          <div class="ctl"><input id="rs" type="number" inputmode="numeric" min="0" placeholder="0"><div class="stepper"><button type="button" data-t="rs" data-d="-1" aria-label="1減らす">−</button><button type="button" data-t="rs" data-d="1" aria-label="1増やす">＋</button></div></div>
+        </div>
+        <div class="srow">
+          <label class="name" for="rc">チェリーREG</label>
+          <div class="ctl"><input id="rc" type="number" inputmode="numeric" min="0" placeholder="0"><div class="stepper"><button type="button" data-t="rc" data-d="-1" aria-label="1減らす">−</button><button type="button" data-t="rc" data-d="1" aria-label="1増やす">＋</button></div></div>
+        </div>
         <p class="note" id="splitMsg"></p>
       </div>
     </details>
-  </section>
+  </div>
 
-  <section>
-    <h2>計算の前提</h2>
-    <div class="seg" id="seg" role="group" aria-label="店の状況">
-      <button type="button" data-p="even">均等</button>
-      <button type="button" data-p="island">シマから推定</button>
-    </div>
-    <p class="priorline" id="priorline"></p>
+  <div class="hdr">計算の前提</div>
+  <div class="group">
+    <div class="segcell"><div class="seg" id="seg" role="group" aria-label="計算の前提"><button type="button" data-p="even">均等</button><button type="button" data-p="island">シマから推定</button></div></div>
     <details id="dIsland">
-      <summary>シマのデータを入れる</summary>
+      <summary><span class="lbl">シマのデータ</span></summary>
       <div class="inner">
-        <p class="note">同じ機種のシマ全台の総回転数・BIG・REGを合計して入れてください。シマ全体のREG確率から、その日の設定の入り方を推定して前提に使います。データ公開サイトや各台のカウンターで集計できます。</p>
-        <div class="field"><label for="ig">合計G数</label><div class="step"><button type="button" data-t="ig" data-d="-100" aria-label="100減らす">−</button><input id="ig" type="number" inputmode="numeric" placeholder="0"><button type="button" data-t="ig" data-d="100" aria-label="100増やす">＋</button></div><div class="quick"><button type="button" data-t="ig" data-d="1000">+1000</button><button type="button" data-t="ig" data-d="10000">+10000</button></div></div>
-        <div class="field"><label for="ib">合計BIG</label><div class="step"><button type="button" data-t="ib" data-d="-1" aria-label="1減らす">−</button><input id="ib" type="number" inputmode="numeric" placeholder="0"><button type="button" data-t="ib" data-d="1" aria-label="1増やす">＋</button></div><div class="quick"><button type="button" data-t="ib" data-d="10">+10</button></div></div>
-        <div class="field"><label for="ir">合計REG</label><div class="step"><button type="button" data-t="ir" data-d="-1" aria-label="1減らす">−</button><input id="ir" type="number" inputmode="numeric" placeholder="0"><button type="button" data-t="ir" data-d="1" aria-label="1増やす">＋</button></div><div class="quick"><button type="button" data-t="ir" data-d="10">+10</button></div></div>
+        <p class="note">同じ機種のシマ全台の合計を入れると、その日の設定の入り方を推定して前提に使います。</p>
+        <div class="srow">
+          <label class="name" for="ig">合計G数</label>
+          <div class="ctl"><input id="ig" type="number" inputmode="numeric" min="0" placeholder="0"><div class="stepper"><button type="button" data-t="ig" data-d="-100" aria-label="100減らす">−</button><button type="button" data-t="ig" data-d="100" aria-label="100増やす">＋</button></div></div>
+          <div class="quick"><button type="button" data-t="ig" data-d="1000">+1000</button><button type="button" data-t="ig" data-d="10000">+10000</button></div>
+        </div>
+        <div class="srow">
+          <label class="name" for="ib">合計BIG</label>
+          <div class="ctl"><input id="ib" type="number" inputmode="numeric" min="0" placeholder="0"><div class="stepper"><button type="button" data-t="ib" data-d="-1" aria-label="1減らす">−</button><button type="button" data-t="ib" data-d="1" aria-label="1増やす">＋</button></div></div>
+          <div class="quick"><button type="button" data-t="ib" data-d="10">+10</button></div>
+        </div>
+        <div class="srow">
+          <label class="name" for="ir">合計REG</label>
+          <div class="ctl"><input id="ir" type="number" inputmode="numeric" min="0" placeholder="0"><div class="stepper"><button type="button" data-t="ir" data-d="-1" aria-label="1減らす">−</button><button type="button" data-t="ir" data-d="1" aria-label="1増やす">＋</button></div></div>
+          <div class="quick"><button type="button" data-t="ir" data-d="10">+10</button></div>
+        </div>
         <div class="result" id="islandOut">入力するとシマの状況を表示します。</div>
       </div>
     </details>
-  </section>
+  </div>
+  <p class="ftr" id="priorline"></p>
 
-  <section>
-    <h2>設定ごとの可能性</h2>
-    <div class="bars" id="bars"></div>
-    <div class="stats">
-      <div class="stat"><div class="k">期待設定</div><div class="v" id="es">–</div></div>
-      <div class="stat"><div class="k">期待機械割</div><div class="v" id="ev">–</div></div>
-      <div class="stat"><div class="k">1時間あたり期待差枚</div><div class="v" id="eh">–</div></div>
-      <div class="stat"><div class="k">1時間あたり期待収支</div><div class="v" id="ey">–</div></div>
-      <div class="stat"><div class="k">次の100G以内に当たる確率</div><div class="v" id="e100">–</div></div>
-      <div class="stat"><div class="k">現在の機械割(差枚から)</div><div class="v" id="ecur">–</div></div>
-    </div>
-    <div class="ghrow">
-      <label>1時間に回すG数 <input id="gph" type="number" inputmode="numeric" value="800"></label>
-      <label>1枚あたり <input id="yen" type="number" inputmode="decimal" value="20" step="0.1"> 円</label>
-    </div>
-  </section>
+  <div class="hdr">設定ごとの可能性</div>
+  <div class="group"><div class="bars" id="bars"></div></div>
+  <div class="tiles">
+    <div class="tile"><div class="k">期待設定</div><div class="v" id="es">–</div></div>
+    <div class="tile"><div class="k">期待機械割</div><div class="v" id="ev">–</div></div>
+    <div class="tile"><div class="k">期待差枚/時</div><div class="v" id="eh">–</div></div>
+    <div class="tile"><div class="k">期待収支/時</div><div class="v" id="ey">–</div></div>
+    <div class="tile"><div class="k">100G以内に当たる</div><div class="v" id="e100">–</div></div>
+    <div class="tile"><div class="k">現在の機械割</div><div class="v" id="ecur">–</div></div>
+  </div>
+  <div class="hdr">期待値の条件</div>
+  <div class="group">
+    <div class="cell"><label class="lbl" for="gph">1時間に回すG数</label><input class="inlinein" id="gph" type="number" inputmode="numeric" value="800"></div>
+    <div class="cell"><label class="lbl" for="yen">1枚あたりの価値(円)</label><input class="inlinein" id="yen" type="number" inputmode="decimal" value="20" step="0.1"></div>
+  </div>
 
-  <section>
-    <h2>この先の目安</h2>
-    <div class="guide" id="guide"><p>データを入れると表示されます。</p></div>
-  </section>
+  <div class="hdr">この先の目安</div>
+  <div class="group guide" id="guide"><p>データを入れると表示されます。</p></div>
 
   <section id="cmpSec" hidden>
-    <h2>台の比較</h2>
-    <div class="compare"><table id="cmp"></table></div>
+    <div class="hdr">台の比較</div>
+    <div class="group"><div class="tblwrap" style="padding-top:4px"><table id="cmp"></table></div></div>
   </section>
 
-  <section>
+  <div class="hdr">情報</div>
+  <div class="group">
     <details>
-      <summary id="specSum">この機種の確率表</summary>
+      <summary><span class="lbl" id="specSum">この機種の確率表</span></summary>
       <div class="tblwrap"><table id="spec"></table></div>
       <p class="src" id="specNote"></p>
     </details>
     <details>
-      <summary>計算の前提って何?</summary>
+      <summary><span class="lbl">計算の前提について</span></summary>
       <div class="src">
-        <p>設定判別は「この台のデータ」と「この店がそもそもどの設定をどれくらい入れているか」の掛け算で決まります。同じBIG・REGでも、高設定がほぼない店なら低設定の上ブレの可能性が高く、高設定が多い店なら素直に高設定と見てよい、ということです。</p>
+        <p>設定判別は「この台のデータ」と「店がどの設定をどれくらい入れているか」の掛け算で決まります。</p>
         <p><b>均等</b>:設定1〜6が同じ割合と仮定。データだけで判断する、一番中立な見方です。</p>
-        <p><b>シマから推定</b>:同じ機種のシマ全体のREG確率から、設定の入り方を自動で推定します。実データに基づくので、プリセットより根拠があります。</p>
-        <p>以前あった「通常営業・イベント・回収日」は、店のデータなしでは根拠が作れないため削除しました。</p>
+        <p><b>シマから推定</b>:同じ機種のシマ全体のREG確率から設定の入り方を推定します。</p>
+        <p>店のデータなしでは根拠が作れないため、「通常営業」などの固定の割合は使っていません。</p>
       </div>
     </details>
     <details>
-      <summary>数値の出どころ</summary>
+      <summary><span class="lbl">数値の出どころ</span></summary>
       <div class="src">
-        <p><b>BIG・REG確率</b>:メーカー公表値。各解析サイトで同じ数値が掲載されています。信頼度は最も高いです。</p>
-        <p><b>ブドウ確率・機械割</b>:smokefield.info「ジャグラースペック一覧表」の掲載値。ブドウはメーカー非公表で、逆算・推定値です。機械割はチェリー狙い条件の値で、公表値より少し高めです。</p>
+        <p><b>BIG・REG確率</b>:メーカー公表値。各解析サイトで同じ数値が掲載されています。</p>
+        <p><b>ブドウ確率・機械割</b>:smokefield.info「ジャグラースペック一覧表」の掲載値。ブドウは非公表のため逆算・推定値、機械割はチェリー狙い条件です。</p>
         <p><b>単独/チェリー重複REG</b>:ガリぞう氏の調査値(DMMぱちタウン掲載)。マイジャグラーⅥは前作Ⅴ、ネオアイムは前作アイムジャグラーEX(6号機)の値を流用。</p>
-        <p><b>差枚からのブドウ逆算</b>:一般的な逆算式(リプレイ1/7.3、チェリー約1/35で2枚、ボーナスは1枚掛けで揃える前提)を使用。BIG獲得枚数はアイム系約252枚、それ以外約240枚、REGは約96枚。ガールズSSとウルトラミラクルのBIG枚数は未確認で240枚と仮定しています。</p>
+        <p><b>差枚からのブドウ逆算</b>:リプレイ1/7.3、チェリー約1/35で2枚、ボーナスは1枚掛けで揃える前提。BIGはアイム系約252枚、他は約240枚(ガールズSSとウルトラミラクルは未確認)、REGは約96枚。</p>
       </div>
     </details>
-  </section>
+  </div>
 
-  <button class="reset" type="button" id="reset">この台のデータをリセット</button>
-
+  <div class="btnrow"><button type="button" id="reset">この台のデータをリセット</button></div>
   <footer>結果は確率的な推測で、設定や勝ちを保証するものではありません。数千G程度ではどの設定でも大きくブレます。</footer>
 </div>
-
 <script>
 const MV={b:[273.1,270.8,266.4,254.0,240.1,229.1],r:[409.6,385.5,336.1,290.0,268.6,229.1],rs:[655.36,601.25,492.75,407.06,390.10,327.68],rc:[1092.27,1074.36,1057.03,1008.25,862.32,762.05],gr:[5.90,5.86,5.82,5.80,5.78,5.67],w:[97.85,98.88,100.80,103.77,106.39,110.53],bn:240};
 const IM={b:[273.1,269.7,269.7,259.0,259.0,255.0],r:[439.8,399.6,331.0,315.1,255.0,255.0],rs:[630.15,574.88,474.90,448.88,364.09,364.09],rc:[1456.36,1310.72,1092.27,1057.03,851.12,851.12],gr:[6.05,6.05,6.05,6.05,6.05,5.79],w:[97.83,98.87,100.43,102.08,104.29,106.54],bn:252};
@@ -373,6 +451,11 @@ function posterior(t){
 }
 
 /* ---------- UI ---------- */
+function setRing(a,b){
+  const C=2*Math.PI*52, C2=2*Math.PI*40;
+  $("ringA").style.strokeDashoffset=C*(1-a/100);
+  $("ringB").style.strokeDashoffset=C2*(1-b/100);
+}
 function renderTabs(){
   const el=$("tabs");el.innerHTML="";
   S.tabs.forEach((t,i)=>{const b=document.createElement("button");b.type="button";b.setAttribute("role","tab");b.setAttribute("aria-selected",i===S.cur?"true":"false");b.textContent=t.name||((i+1)+"台目");b.onclick=()=>{S.cur=i;syncForm();update()};el.appendChild(b)});
@@ -387,6 +470,7 @@ function syncForm(){
 }
 function renderSpec(){
   const m=MODELS[T().model];
+  $("modelName").textContent=m.name;
   const hasSplit=!!m.rs;
   $("regNote").textContent=hasSplit?"単独REGとチェリー重複REGに分けると精度が上がります。合計がREG回数と一致したときだけ使います。("+m.splitNote+")":"この機種は単独/チェリー重複REGの信頼できる設定別数値が見つからないため、内訳は計算に使いません。";
   $("rs").disabled=!hasSplit;$("rc").disabled=!hasSplit;document.querySelectorAll('button[data-t="rs"],button[data-t="rc"]').forEach(b=>b.disabled=!hasSplit);
@@ -439,18 +523,17 @@ function render(d,t){
   const bars=$("bars");
   const clear=()=>{["es","ev","eh","ey","e100","ecur"].forEach(k=>$(k).textContent="–")};
   if(!d){
-    $("p56").innerHTML="–<small>%</small>";$("p4up").textContent="設定4以上 –%";$("lamp").classList.remove("on");
+    $("p56").innerHTML="–<small>%</small>";$("p4up").textContent="–%";setRing(0,0);
     $("verdict").textContent="総回転数・BIG・REGを入れてください。";
-    bars.innerHTML=[1,2,3,4,5,6].map(s=>`<div class="row"><b>設定${s}</b><div class="track"><div class="fill"></div></div><span>–</span></div>`).join("");
+    bars.innerHTML=[1,2,3,4,5,6].map(s=>`<div class="bar"><span class="bl">設定${s}</span><div class="track"><div class="fill"></div></div><span class="bv">–</span></div>`).join("");
     clear();$("guide").innerHTML="<p>データを入れると表示されます。</p>";$("splitMsg").textContent="";return;
   }
   const {m,G,B,R,post,useSplit,useCount,useRev,RS,RC}=d;
   $("splitMsg").textContent=(m.rs&&(RS!==null||RC!==null))?(useSplit?"内訳を計算に使っています。":"単独とチェリーの合計がREG回数と一致していないので、内訳は使っていません。"):"";
   const p56=(post[4]+post[5])*100,p4=(post[3]+post[4]+post[5])*100;
-  $("p56").innerHTML=p56.toFixed(0)+"<small>%</small>";$("p4up").textContent="設定4以上 "+p4.toFixed(0)+"%";
-  $("lamp").classList.toggle("on",p56>=50);
+  $("p56").innerHTML=p56.toFixed(0)+"<small>%</small>";$("p4up").textContent=p4.toFixed(0)+"%";setRing(p56,p4);
   const max=Math.max(...post);
-  bars.innerHTML=post.map((p,i)=>`<div class="row${i>=4?" hi":""}"><b>設定${i+1}</b><div class="track"><div class="fill" style="width:${(p/max*100).toFixed(1)}%"></div></div><span>${(p*100).toFixed(1)}%</span></div>`).join("");
+  bars.innerHTML=post.map((p,i)=>`<div class="bar${i>=4?" hi":""}"><span class="bl">設定${i+1}</span><div class="track"><div class="fill" style="width:${(p/max*100).toFixed(1)}%"></div></div><span class="bv">${(p*100).toFixed(1)}%</span></div>`).join("");
   let w=0,es=0,p100=0;post.forEach((p,i)=>{w+=p*m.w[i];es+=p*(i+1);p100+=p*(1-Math.pow(1-1/m.b[i]-1/m.r[i],100))});
   $("es").textContent=es.toFixed(2);
   $("ev").innerHTML=w.toFixed(1)+"<small>%</small>";
