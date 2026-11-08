@@ -1,5 +1,5 @@
 // バージョンを上げると古いキャッシュが消えて新しい版に入れ替わります
-const VERSION = "jug-v11";
+const VERSION = "jug-v14";
 const CORE = ["./", "./index.html", "./manifest.webmanifest", "./icon-180.png", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", e => {
@@ -21,7 +21,7 @@ self.addEventListener("fetch", e => {
   // ページ本体:電波があれば最新版を取りに行き、なければキャッシュ
   if (req.mode === "navigate") {
     e.respondWith(
-      fetch(req).then(res => {
+      fetch(req, { cache: "no-cache" }).then(res => {
         const copy = res.clone();
         caches.open(VERSION).then(c => c.put("./index.html", copy));
         return res;

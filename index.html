@@ -158,6 +158,20 @@ details[open]>summary::after{transform:rotate(45deg)}
 .chart text{font-size:10px;fill:var(--label2);font-variant-numeric:tabular-nums}
 .chart .grid{stroke:var(--sep);stroke-width:.5}
 .chart .zero{stroke:var(--label3);stroke-width:1}
+.carousel{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;overscroll-behavior-x:contain}
+.carousel::-webkit-scrollbar{display:none}
+.slide{flex:0 0 100%;scroll-snap-align:start;scroll-snap-stop:always;padding:12px 8px 4px;min-width:0}
+.slide .st{display:flex;justify-content:space-between;align-items:baseline;margin:0 8px 6px;gap:8px}
+.slide .st b{font-size:15px;font-weight:600}
+.slide .st span{font-size:12px;color:var(--label2);font-variant-numeric:tabular-nums}
+.slide svg{width:100%;height:auto;display:block;overflow:visible}
+.slide text{font-size:10px;fill:var(--label2);font-variant-numeric:tabular-nums}
+.slide .grid{stroke:var(--sep);stroke-width:.5}
+.slide .zero{stroke:var(--label3);stroke-width:1}
+.slide .cap{font-size:13px;color:var(--label2);margin:6px 8px 0;line-height:1.45;min-height:2.9em}
+.dots{display:flex;justify-content:center;gap:6px;padding:6px 0 10px;flex-wrap:wrap}
+.dots button{width:8px;height:8px;border-radius:50%;border:0;padding:0;background:var(--fill2);cursor:pointer}
+.dots button.on{background:var(--label);width:18px;border-radius:4px}
 .legend{display:flex;flex-wrap:wrap;gap:6px 12px;padding:4px 16px 12px;font-size:12px;color:var(--label2)}
 .legend span{display:inline-flex;align-items:center;gap:5px}
 .legend i{width:14px;height:3px;border-radius:2px;display:inline-block}
@@ -351,8 +365,8 @@ input[type=number]{-moz-appearance:textfield}
 
   <div class="hdr">予想グラフ</div>
   <div class="group">
-    <div class="chart" id="chart"><svg viewBox="0 0 340 220" role="img" aria-label="設定別の予想差枚グラフ"></svg></div>
-    <div class="legend" id="legend"></div>
+    <div class="carousel" id="chart" role="region" aria-label="予想グラフ(左右にスワイプ)"></div>
+    <div class="dots" id="dots"></div>
     <div class="inner" style="padding:4px 0 0"><p class="note">実際のグラフの途中経過を入れると、黒い線で重ねて表示します(任意)。1行に「G数 差枚」(例:1000 -300)。</p>
       <div style="padding:0 16px 8px"><textarea id="path" rows="3" placeholder="1000 -300&#10;2000 250&#10;3000 600" style="width:100%;font:inherit;font-size:16px;color:var(--label);background:var(--fill);border:0;border-radius:10px;padding:10px;resize:vertical"></textarea></div></div>
     <div class="cell"><label class="lbl" for="gend">グラフの終点(G)</label><input class="inlinein" id="gend" type="number" inputmode="numeric" value="8000"></div>
@@ -686,7 +700,8 @@ let CURT=null,chartTimer=null;
 function drawChart(d,t){clearTimeout(chartTimer);chartTimer=setTimeout(()=>drawChartNow(d,t),60)}
 function drawChartNow(d,t){
   CURT=t;
-  const svg=$("chart").querySelector("svg"),leg=$("legend");
+  const box=$("chart"),dots=$("dots");
+  const keep=box.clientWidth?Math.round(box.scrollLeft/box.clientWidth):0;
   const m=MODELS[t.model];
   const G=d?d.G:0;
   const path=parsePath(t);
@@ -698,20 +713,18 @@ function drawChartNow(d,t){
     else if(path.length&&Math.abs(path[path.length-1][0]-G)<=300)cur=path[path.length-1][1];
     else{let grp=0;d.post.forEach((p,i)=>grp+=p/m.gr[i]);cur=d.B*m.bn+d.R*96+G*(8*grp+3/7.3+m.cp/m.ch-3);est=true}
   }
-  // 設定別の平均線
   const N=40,lines=[];
   for(let i=0;i<6;i++){const mu=gameModel(m,t,i).mu;lines.push([...Array(N+1)].map((_,k)=>{const x=end*k/N;return [x,mu*x]}))}
-  // モンテカルロ(ブロック単位でボーナス・小役を抽選)
   const CP=120,NP=400;let qs=null,samples=[];
   if(d&&end>G){
     const post=d.post,r=rng(12345+G*7+(d.B<<8)+d.R);
     const cum=[];post.reduce((a,c,i)=>(cum[i]=a+c,a+c),0);
     const span=end-G,blk=span/CP,models=[0,1,2,3,4,5].map(i=>gameModel(m,t,i));
     const vals=Array.from({length:CP+1},()=>new Float64Array(NP));
-    const finals=[];
+    const finals=[],sets=[];
     for(let k=0;k<NP;k++){
-      const u=(k+0.5)/NP;let si=cum.findIndex(c=>u<=c);if(si<0)si=5;
-      const g=models[si];let y=cur,acc=0;vals[0][k]=y;
+      const u=(k+0.5)/NP;let si=cum.findIndex(c=>u<=c);if(si<0)si=5;sets.push(si);
+      const g=models[si];let y=cur;vals[0][k]=y;
       for(let c=1;c<=CP;c++){
         const n=Math.round(blk*c)-Math.round(blk*(c-1));
         const B=pois(n*g.pb,r),R=pois(n*g.pr,r),gr=binN(n,g.pg,r),rp=binN(n,g.prp,r),ch=pois(n*g.pc,r),be=pois(n*g.pbe,r),pi=pois(n*g.ppi,r);
@@ -722,11 +735,28 @@ function drawChartNow(d,t){
     }
     const pct=(arr,q)=>{const s=Array.from(arr).sort((a,b)=>a-b);return s[Math.min(s.length-1,Math.floor(q*s.length))]};
     qs=vals.map((v,c)=>({x:G+span*c/CP,p10:pct(v,0.1),p25:pct(v,0.25),p50:pct(v,0.5),p75:pct(v,0.75),p90:pct(v,0.9)}));
-    finals.sort((a,b)=>a[0]-b[0]);
-    [0.2,0.5,0.8].forEach(q=>{const k=finals[Math.floor(q*NP)][1];samples.push(vals.map((v,c)=>[G+span*c/CP,v[k]]))});
   }
-  // 軸
-  let ys=[0];lines.forEach(l=>l.forEach(p=>ys.push(p[1])));if(qs)qs.forEach(q=>ys.push(q.p10,q.p90));samples.forEach(s=>s.forEach(p=>ys.push(p[1])));path.forEach(p=>ys.push(p[1]));if(cur!==null)ys.push(cur);
+  // 0Gからのシミュレーション(各設定100本)→ 実際のグラフに似ている順に10本
+  let simInfo=null;
+  if(d){
+    const r2=rng(777+G*3+(d.B<<6)+d.R),models=[0,1,2,3,4,5].map(i=>gameModel(m,t,i));
+    const CP2=160,blk=end/CP2,PER=100,pool=[];
+    for(let si=0;si<6;si++){const g=models[si];
+      for(let k=0;k<PER;k++){let y=0;const pts=[[0,0]];
+        for(let c=1;c<=CP2;c++){const n=Math.round(blk*c)-Math.round(blk*(c-1));
+          const B=pois(n*g.pb,r2),R=pois(n*g.pr,r2),gr=binN(n,g.pg,r2),rp=binN(n,g.prp,r2),ch=pois(n*g.pc,r2),be=pois(n*g.pbe,r2),pi=pois(n*g.ppi,r2);
+          y+=B*m.bn+R*96+gr*8+ch*m.cp+rp*3+be*14+pi*10+n*g.adj-3*n;pts.push([end*c/CP2,y])}
+        pool.push({pts,set:si+1})}}
+    const obs=path.slice();if(cur!==null&&!est)obs.push([G,cur]);else if(!obs.length&&cur!==null)obs.push([G,cur]);
+    const at=(pts,x)=>{const c=Math.min(CP2-1,Math.max(0,Math.floor(x/blk)));const a=pts[c],b=pts[c+1];return a[1]+(b[1]-a[1])*((x-a[0])/(b[0]-a[0]||1))};
+    pool.forEach(p=>{p.dist=Math.sqrt(obs.reduce((s,o)=>s+(at(p.pts,o[0])-o[1])**2,0)/obs.length)});
+    pool.sort((a,b)=>a.dist-b.dist);
+    samples=pool.slice(0,10);
+    const cnt=[0,0,0,0,0,0],top=pool.slice(0,60);top.forEach(p=>cnt[p.set-1]++);
+    simInfo={obsN:obs.length,cnt,est:est&&!path.length};
+  }
+  // 共通の縦軸(全スライドで同じ目盛り)
+  let ys=[0];lines.forEach(l=>l.forEach(p=>ys.push(p[1])));if(qs)qs.forEach(q=>ys.push(q.p10,q.p90));samples.forEach(s=>s.pts.forEach(p=>ys.push(p[1])));path.forEach(p=>ys.push(p[1]));if(cur!==null)ys.push(cur);
   let ymin=Math.min(...ys),ymax=Math.max(...ys);const pad=(ymax-ymin)*0.06||100;ymin-=pad;ymax+=pad;
   const step=[250,500,1000,2000,5000].find(s=>(ymax-ymin)/s<=6)||5000;
   ymin=Math.floor(ymin/step)*step;ymax=Math.ceil(ymax/step)*step;
@@ -734,29 +764,44 @@ function drawChartNow(d,t){
   const X=x=>L+(R-L)*x/end,Y=y=>B-(B-T)*(y-ymin)/(ymax-ymin);
   const pth=pts=>pts.map((p,i)=>(i?"L":"M")+X(p[0]).toFixed(1)+" "+Y(p[1]).toFixed(1)).join("");
   const band=(lo,hi)=>pth(qs.map(q=>[q.x,q[hi]]))+qs.slice().reverse().map(q=>"L"+X(q.x).toFixed(1)+" "+Y(q[lo]).toFixed(1)).join("")+"Z";
-  let h="";
-  for(let y=ymin;y<=ymax+1e-6;y+=step){h+=`<line class="${y===0?"zero":"grid"}" x1="${L}" x2="${R}" y1="${Y(y)}" y2="${Y(y)}"/><text x="${L-4}" y="${Y(y)+3}" text-anchor="end">${y>0?"+":""}${y}</text>`}
-  const xs=end<=4000?1000:end<=10000?2000:5000;
-  for(let x=0;x<=end+1e-6;x+=xs){h+=`<text x="${X(x)}" y="${B+14}" text-anchor="middle">${x}</text>`}
-  lines.forEach((l,i)=>{h+=`<path d="${pth(l)}" fill="none" stroke="${SCOL[i]}" stroke-width="1.2" stroke-dasharray="3 3" opacity=".8"/>`});
-  if(qs){
-    h+=`<path d="${band("p10","p90")}" fill="var(--purple)" opacity=".12"/>`;
-    h+=`<path d="${band("p25","p75")}" fill="var(--purple)" opacity=".18"/>`;
-    samples.forEach(sp=>{h+=`<path d="${pth(sp)}" fill="none" stroke="var(--purple)" stroke-width="1" opacity=".45"/>`});
-    h+=`<path d="${pth(qs.map(q=>[q.x,q.p50]))}" fill="none" stroke="var(--purple)" stroke-width="2.5" stroke-dasharray="6 4"/>`;
-  }
-  if(path.length){const pp=[[0,0],...path];if(d&&cur!==null&&!est)pp.push([G,cur]);h+=`<path d="${pth(pp)}" fill="none" stroke="var(--label)" stroke-width="2"/>`}
-  else if(d&&cur!==null){h+=`<path d="${pth([[0,0],[G,cur]])}" fill="none" stroke="var(--label3)" stroke-width="1.5" stroke-dasharray="2 3"/>`}
-  if(d){
-    h+=`<line x1="${X(G)}" x2="${X(G)}" y1="${T}" y2="${B}" stroke="var(--label3)" stroke-width="1" stroke-dasharray="2 3"/>`;
-    h+=`<circle cx="${X(G)}" cy="${Y(cur)}" r="5" fill="${est?"var(--card)":"var(--purple)"}" stroke="var(--purple)" stroke-width="2.5"/>`;
-  }
-  svg.innerHTML=h;
-  leg.innerHTML=SCOL.map((c,i)=>`<span><i style="background:${c}"></i>設定${i+1}平均</span>`).join("")+(d?`<span><i style="background:var(--purple)"></i>この台の予想</span>`:"")+(path.length?`<span><i style="background:var(--label)"></i>実際の推移</span>`:"");
+  const axes=()=>{let h="";for(let y=ymin;y<=ymax+1e-6;y+=step){h+=`<line class="${y===0?"zero":"grid"}" x1="${L}" x2="${R}" y1="${Y(y)}" y2="${Y(y)}"/><text x="${L-4}" y="${Y(y)+3}" text-anchor="end">${y>0?"+":""}${y}</text>`}
+    const xs=end<=4000?1000:end<=10000?2000:5000;for(let x=0;x<=end+1e-6;x+=xs){h+=`<text x="${X(x)}" y="${B+14}" text-anchor="middle">${x}</text>`}return h};
+  const past=()=>{let h="";
+    if(path.length){const pp=[[0,0],...path];if(d&&cur!==null&&!est)pp.push([G,cur]);h+=`<path d="${pth(pp)}" fill="none" stroke="var(--label)" stroke-width="2"/>`}
+    else if(d&&cur!==null){h+=`<path d="${pth([[0,0],[G,cur]])}" fill="none" stroke="var(--label3)" stroke-width="1.5" stroke-dasharray="2 3"/>`}
+    if(d){h+=`<line x1="${X(G)}" x2="${X(G)}" y1="${T}" y2="${B}" stroke="var(--label3)" stroke-width="1" stroke-dasharray="2 3"/><circle cx="${X(G)}" cy="${Y(cur)}" r="5" fill="${est?"var(--card)":"var(--purple)"}" stroke="var(--purple)" stroke-width="2.5"/>`}
+    return h};
+  const svg=(inner,label)=>`<svg viewBox="0 0 340 214" role="img" aria-label="${label}">${axes()}${inner}${past()}</svg>`;
+  const slides=[];
+  // 1枚目:設定別の平均
+  {let h="";lines.forEach((l,i)=>{h+=`<path d="${pth(l)}" fill="none" stroke="${SCOL[i]}" stroke-width="2"/>`;const lp=l[l.length-1];h+=`<text x="${R+3}" y="${Y(lp[1])+3}" style="fill:${SCOL[i]};font-weight:600">${i+1}</text>`});
+   slides.push({title:"設定別の平均",sub:"",svg:svg(h,"設定別の平均推移"),cap:`各設定を${STYLE_NAME[t.style]||"チェリー狙い"}で打ったときの平均的な推移。右端の数字が設定です。`+(path.length?"黒い線は実際の推移。":"")});}
   if(qs){
     const q=qs[qs.length-1];
-    $("chartNote").textContent=`${end}G時点の予想差枚は中央値${sg(q.p50)}枚。半分の確率で${sg(q.p25)}〜${sg(q.p75)}枚、8割の確率で${sg(q.p10)}〜${sg(q.p90)}枚に収まる見込みです(400通りのシミュレーション)。`+(est?"差枚が未入力なので、現在地(白丸)はボーナス回数からの推定です。":"")+" 細い紫の線は、実際のデータカウンターに近い動きのシミュレーション例です。";
-  }else $("chartNote").textContent="点線は各設定の平均的な推移です。データを入れると、この台の今後の予想が出ます。";
+    let h=`<path d="${band("p10","p90")}" fill="var(--purple)" opacity=".14"/><path d="${band("p25","p75")}" fill="var(--purple)" opacity=".22"/><path d="${pth(qs.map(q=>[q.x,q.p50]))}" fill="none" stroke="var(--purple)" stroke-width="2.5" stroke-dasharray="6 4"/>`;
+    slides.push({title:"予想の範囲",sub:`${end}G時点`,svg:svg(h,"予想の範囲"),cap:`中央値${sg(q.p50)}枚。濃い帯は半分の確率で収まる範囲(${sg(q.p25)}〜${sg(q.p75)}枚)、薄い帯は8割の範囲(${sg(q.p10)}〜${sg(q.p90)}枚)。`});
+  }
+  samples.forEach((sp,j)=>{
+    const fin=sp.pts[sp.pts.length-1][1];
+    const h=`<path d="${pth(sp.pts)}" fill="none" stroke="${SCOL[sp.set-1]}" stroke-width="1.8"/>`;
+    slides.push({title:`似ているグラフ ${j+1}`,sub:`設定${sp.set}・${end}G時点${sg(fin)}枚`,svg:svg(h,"似ているグラフ"+(j+1)),cap:`0Gから設定${sp.set}で打った場合のシミュレーション1例。実際のグラフとのズレは平均約${Math.round(sp.dist)}枚。${j===0?"600通りの中で一番似ている形です。":""}`});
+  });
+  box.innerHTML=slides.map(sl=>`<div class="slide"><div class="st"><b>${sl.title}</b><span>${sl.sub}</span></div>${sl.svg}<p class="cap">${sl.cap}</p></div>`).join("");
+  dots.innerHTML=slides.map((_,i)=>`<button type="button" aria-label="${i+1}枚目へ"></button>`).join("");
+  const setDot=()=>{const i=box.clientWidth?Math.round(box.scrollLeft/box.clientWidth):0;[...dots.children].forEach((b,j)=>b.classList.toggle("on",j===i))};
+  [...dots.children].forEach((b,i)=>b.onclick=()=>box.scrollTo({left:i*box.clientWidth,behavior:"smooth"}));
+  box.onscroll=()=>{cancelAnimationFrame(box._r);box._r=requestAnimationFrame(setDot)};
+  box.scrollLeft=Math.min(keep,slides.length-1)*box.clientWidth;setDot();
+  let note=`左右にスワイプして切り替え(全${slides.length}枚)。`;
+  if(simInfo){
+    note+=`3枚目以降は、各設定を0Gから100通りずつ(計600通り)シミュレーションし、実際のグラフ${path.length?"(入力した途中経過と現在地)":"の現在地"}に形が近い順に並べています。`;
+    const c=simInfo.cnt.map((v,i)=>v?`設定${i+1}が${v}本`:"").filter(Boolean).join("、");
+    note+=` 似ている上位60本の内訳:${c}。`;
+    if(simInfo.obsN<3)note+=" 途中経過を入れると、形の比較が正確になります。";
+    if(simInfo.est)note+=" 差枚が未入力なので、現在地はボーナス回数からの推定です。";
+    note+=" 形が似ていることは設定の証拠としては弱いので、判定は上の判別結果を優先してください。";
+  }else note+="データを入れると、予想の範囲と似ているグラフが追加されます。";
+  $("chartNote").textContent=note;
 }
 
 function renderCompare(){
@@ -790,7 +835,7 @@ $("useRev").addEventListener("change",()=>{T().useRev=$("useRev").checked;update
 $("reset").addEventListener("click",()=>{const t=T();FIELDS.forEach(k=>t[k]="");t.useRev=false;syncForm();update()});
 
 load();syncForm();update();
-if("serviceWorker" in navigator){window.addEventListener("load",()=>{navigator.serviceWorker.register("sw.js").catch(()=>{})})}
+if("serviceWorker" in navigator){window.addEventListener("load",()=>{navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{r.update();document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")r.update()})}).catch(()=>{})})}
 </script>
 </body>
 </html>
