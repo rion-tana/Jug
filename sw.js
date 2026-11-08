@@ -1,5 +1,5 @@
 // バージョンを上げると古いキャッシュが消えて新しい版に入れ替わります
-const VERSION = "jug-v3";
+const VERSION = "jug-v9";
 const CORE = ["./", "./index.html", "./manifest.webmanifest", "./icon-180.png", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", e => {

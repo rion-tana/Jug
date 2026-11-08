@@ -153,6 +153,14 @@ details[open]>summary::after{transform:rotate(45deg)}
 .tile .v small{font-size:15px;font-weight:600;margin-left:1px}
 .inlinein{width:72px;text-align:right;border:0;background:transparent;color:var(--blue);font-size:17px;padding:0;outline:none;font-variant-numeric:tabular-nums}
 
+.chart{padding:10px 8px 6px}
+.chart svg{width:100%;height:auto;display:block;overflow:visible}
+.chart text{font-size:10px;fill:var(--label2);font-variant-numeric:tabular-nums}
+.chart .grid{stroke:var(--sep);stroke-width:.5}
+.chart .zero{stroke:var(--label3);stroke-width:1}
+.legend{display:flex;flex-wrap:wrap;gap:6px 12px;padding:4px 16px 12px;font-size:12px;color:var(--label2)}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{width:14px;height:3px;border-radius:2px;display:inline-block}
 .guide p{margin:0;padding:11px 16px;font-size:15px;line-height:1.45;position:relative}
 .guide p+p::before{content:"";position:absolute;top:0;left:16px;right:0;height:.5px;background:var(--sep)}
 
@@ -235,7 +243,6 @@ input[type=number]{-moz-appearance:textfield}
           <div class="ctl"><input id="diff" type="number" inputmode="text" placeholder="0"><div class="stepper"><button type="button" data-t="diff" data-d="-10" data-neg="1" aria-label="10減らす">−</button><button type="button" data-t="diff" data-d="10" data-neg="1" aria-label="10増やす">＋</button></div></div>
           <div class="quick"><button type="button" data-t="diff" data-d="-100" data-neg="1">−100</button><button type="button" data-t="diff" data-d="100" data-neg="1">+100</button><button type="button" data-t="diff" data-d="500" data-neg="1">+500</button></div>
         </div>
-        <div class="segcell"><div class="seg" id="style" role="group" aria-label="打ち方"><button type="button" data-s="aim">チェリー狙い</button><button type="button" data-s="free">適当打ち</button></div></div>
         <div class="result" id="revOut">差枚を入れると推定ブドウ確率を表示します。</div>
         <div class="cell"><span class="lbl">判別に使う<small>重みを半分にして反映</small></span><label class="switch"><input type="checkbox" id="useRev" aria-label="推定ブドウを判別に使う"><span></span></label></div>
       </div>
@@ -254,6 +261,26 @@ input[type=number]{-moz-appearance:textfield}
           <div class="ctl"><input id="gg" type="number" inputmode="numeric" min="0" placeholder="0"><div class="stepper"><button type="button" data-t="gg" data-d="-10" aria-label="10減らす">−</button><button type="button" data-t="gg" data-d="10" aria-label="10増やす">＋</button></div></div>
           <div class="quick"><button type="button" data-t="gg" data-d="100">+100</button><button type="button" data-t="gg" data-d="1000">+1000</button></div>
         </div>
+        <div class="srow">
+          <label class="name" for="nc">ペカらないチェリー<small id="rnc">–</small></label>
+          <div class="ctl"><input id="nc" type="number" inputmode="numeric" min="0" placeholder="0"><div class="stepper"><button type="button" data-t="nc" data-d="-1" aria-label="1減らす">−</button><button type="button" data-t="nc" data-d="1" aria-label="1増やす">＋</button></div></div>
+        </div>
+        <p class="note" id="ncNote"></p>
+      </div>
+    </details>
+    <details id="dBig">
+      <summary><span class="lbl">BIGの内訳</span></summary>
+      <div class="inner">
+        <p class="note" id="bigNote"></p>
+        <div class="srow">
+          <label class="name" for="bs">単独BIG</label>
+          <div class="ctl"><input id="bs" type="number" inputmode="numeric" min="0" placeholder="0"><div class="stepper"><button type="button" data-t="bs" data-d="-1" aria-label="1減らす">−</button><button type="button" data-t="bs" data-d="1" aria-label="1増やす">＋</button></div></div>
+        </div>
+        <div class="srow">
+          <label class="name" for="bc">チェリー重複BIG</label>
+          <div class="ctl"><input id="bc" type="number" inputmode="numeric" min="0" placeholder="0"><div class="stepper"><button type="button" data-t="bc" data-d="-1" aria-label="1減らす">−</button><button type="button" data-t="bc" data-d="1" aria-label="1増やす">＋</button></div></div>
+        </div>
+        <p class="note" id="bigMsg"></p>
       </div>
     </details>
     <details id="dReg">
@@ -295,6 +322,8 @@ input[type=number]{-moz-appearance:textfield}
           <div class="ctl"><input id="ir" type="number" inputmode="numeric" min="0" placeholder="0"><div class="stepper"><button type="button" data-t="ir" data-d="-1" aria-label="1減らす">−</button><button type="button" data-t="ir" data-d="1" aria-label="1増やす">＋</button></div></div>
           <div class="quick"><button type="button" data-t="ir" data-d="10">+10</button></div>
         </div>
+        <p class="note">もっと精度を上げたい場合は、台ごとのデータを1行1台で「G数 BIG REG」の順に入れてください(例:3200 12 10)。3台以上入れると、合計値より優先して使います。</p>
+        <div style="padding:0 16px 8px"><textarea id="ilist" rows="5" placeholder="3200 12 10&#10;2800 9 6&#10;4100 15 14" style="width:100%;font:inherit;font-size:16px;color:var(--label);background:var(--fill);border:0;border-radius:10px;padding:10px;resize:vertical"></textarea></div>
         <div class="result" id="islandOut">入力するとシマの状況を表示します。</div>
       </div>
     </details>
@@ -305,17 +334,28 @@ input[type=number]{-moz-appearance:textfield}
   <div class="group"><div class="bars" id="bars"></div></div>
   <div class="tiles">
     <div class="tile"><div class="k">期待設定</div><div class="v" id="es">–</div></div>
-    <div class="tile"><div class="k">期待機械割</div><div class="v" id="ev">–</div></div>
+    <div class="tile"><div class="k">期待機械割(控えめ)</div><div class="v" id="ev">–</div></div>
     <div class="tile"><div class="k">期待差枚/時</div><div class="v" id="eh">–</div></div>
     <div class="tile"><div class="k">期待収支/時</div><div class="v" id="ey">–</div></div>
     <div class="tile"><div class="k">100G以内に当たる</div><div class="v" id="e100">–</div></div>
     <div class="tile"><div class="k">現在の機械割</div><div class="v" id="ecur">–</div></div>
+    <div class="tile" style="grid-column:1/-1"><div class="k">閉店までの期待収支</div><div class="v" id="eclose">–</div></div>
   </div>
   <div class="hdr">期待値の条件</div>
   <div class="group">
+    <div class="segcell"><div class="note" style="font-size:13px;color:var(--label2);margin:0 0 6px">打ち方(期待値とブドウ逆算に反映)</div><div class="seg" id="style" role="group" aria-label="打ち方"><button type="button" data-s="aim">チェリー狙い</button><button type="button" data-s="full">フル攻略</button><button type="button" data-s="free">適当打ち</button></div></div>
+    <div class="cell"><label class="lbl" for="hrs">閉店までの時間</label><input class="inlinein" id="hrs" type="number" inputmode="decimal" step="0.5" placeholder="未入力"></div>
     <div class="cell"><label class="lbl" for="gph">1時間に回すG数</label><input class="inlinein" id="gph" type="number" inputmode="numeric" value="800"></div>
     <div class="cell"><label class="lbl" for="yen">1枚あたりの価値(円)</label><input class="inlinein" id="yen" type="number" inputmode="decimal" value="20" step="0.1"></div>
   </div>
+
+  <div class="hdr">予想グラフ</div>
+  <div class="group">
+    <div class="chart" id="chart"><svg viewBox="0 0 340 220" role="img" aria-label="設定別の予想差枚グラフ"></svg></div>
+    <div class="legend" id="legend"></div>
+    <div class="cell"><label class="lbl" for="gend">グラフの終点(G)</label><input class="inlinein" id="gend" type="number" inputmode="numeric" value="8000"></div>
+  </div>
+  <p class="ftr" id="chartNote">細い線は各設定の平均的な差枚の推移、紫の点線と帯はこの台の今後の予想(帯は約68%の範囲)です。</p>
 
   <div class="hdr">この先の目安</div>
   <div class="group guide" id="guide"><p>データを入れると表示されます。</p></div>
@@ -339,15 +379,18 @@ input[type=number]{-moz-appearance:textfield}
         <p><b>均等</b>:設定1〜6が同じ割合と仮定。データだけで判断する、一番中立な見方です。</p>
         <p><b>シマから推定</b>:同じ機種のシマ全体のREG確率から設定の入り方を推定します。</p>
         <p>店のデータなしでは根拠が作れないため、「通常営業」などの固定の割合は使っていません。</p>
+        <p><b>期待値と続行判定</b>:設定ごとの可能性は選んだ前提で表示しますが、期待値と続行・ヤメの判定は、シマのデータがない場合「店のジャグラーは平均すると公表値ベースで機械割100%(トントン)」という控えめな前提で計算します。「均等」のまま期待値を出すと、何も情報がなくても約+3%のプラスに見えてしまい、甘い判断になるためです。</p>
       </div>
     </details>
     <details>
       <summary><span class="lbl">数値の出どころ</span></summary>
       <div class="src">
-        <p><b>BIG・REG確率</b>:メーカー公表値。各解析サイトで同じ数値が掲載されています。</p>
-        <p><b>ブドウ確率・機械割</b>:smokefield.info「ジャグラースペック一覧表」の掲載値。ブドウは非公表のため逆算・推定値、機械割はチェリー狙い条件です。</p>
-        <p><b>単独/チェリー重複REG</b>:ガリぞう氏の調査値(DMMぱちタウン掲載)。マイジャグラーⅥは前作Ⅴ、ネオアイムは前作アイムジャグラーEX(6号機)の値を流用。</p>
-        <p><b>差枚からのブドウ逆算</b>:リプレイ1/7.3、チェリー約1/35で2枚、ボーナスは1枚掛けで揃える前提。BIGはアイム系約252枚、他は約240枚(ガールズSSとウルトラミラクルは未確認)、REGは約96枚。</p>
+        <p><b>BIG・REG確率</b>:メーカー公表値(小数点以下はガリぞう氏の分数表記)。信頼度は最も高いです。</p>
+        <p><b>ブドウ確率・機械割・単独/チェリー重複REG</b>:ジャグラー専門ライター、ガリぞう氏の独自調査値(なな徹「ガリぞうの収支日記」#134・#194・#231・#248)。メーカー非公表のため、アプリ実戦や公表値からの逆算による推定値です。機械割は「通常時チェリー狙い・GOGO!後1枚掛け・先ペカ時チェリー抜き・1枚掛け時ブドウ抜き」条件。</p>
+        <p><b>流用している値</b>:マイジャグラーⅥは前作Ⅴ、ネオアイムは前作アイムジャグラーEX(6号機)の値。ボーナス確率が前作と同一のため、小役も同じと見られています。</p>
+        <p><b>BIG内訳</b>:マイⅤ・Ⅵ、ファンキー2(ガリぞう氏調査値。レア役重複を含めて振り分け)。<b>ペカらないチェリー</b>:マイⅤ・Ⅵ、ハッピーVⅢ、ウルトラミラクル。</p>
+        <p><b>REG内訳が使える機種</b>:マイⅤ・Ⅵ、アイムEX、ネオアイム、ファンキー2、ハッピーVⅢ。ゴーゴー3は合算で十分とされ、ガールズSS・ミスター・ウルトラミラクルは未判明です。</p>
+        <p><b>差枚からのブドウ逆算</b>:リプレイ1/7.3、機種ごとの非重複チェリー確率と払い出し(ミスターは4枚、他は2枚)、ボーナスは1枚掛けで揃える前提。BIGはアイム系約252枚、他は約240枚、REGは約96枚。</p>
       </div>
     </details>
   </div>
@@ -356,25 +399,25 @@ input[type=number]{-moz-appearance:textfield}
   <footer>結果は確率的な推測で、設定や勝ちを保証するものではありません。数千G程度ではどの設定でも大きくブレます。</footer>
 </div>
 <script>
-const MV={b:[273.1,270.8,266.4,254.0,240.1,229.1],r:[409.6,385.5,336.1,290.0,268.6,229.1],rs:[655.36,601.25,492.75,407.06,390.10,327.68],rc:[1092.27,1074.36,1057.03,1008.25,862.32,762.05],gr:[5.90,5.86,5.82,5.80,5.78,5.67],w:[97.85,98.88,100.80,103.77,106.39,110.53],bn:240};
-const IM={b:[273.1,269.7,269.7,259.0,259.0,255.0],r:[439.8,399.6,331.0,315.1,255.0,255.0],rs:[630.15,574.88,474.90,448.88,364.09,364.09],rc:[1456.36,1310.72,1092.27,1057.03,851.12,851.12],gr:[6.05,6.05,6.05,6.05,6.05,5.79],w:[97.83,98.87,100.43,102.08,104.29,106.54],bn:252};
+const MV={b:[273.07,270.81,266.41,254.02,240.06,229.15],r:[409.60,385.51,336.08,289.98,268.59,229.15],rs:[655.36,601.25,492.75,407.06,390.10,327.68],rc:[1092.27,1074.36,1057.03,1008.25,862.32,762.05],gr:[5.90,5.85,5.80,5.78,5.76,5.66],w:[97.83,98.95,101.19,104.31,107.19,111.65],wo:[97.0,98.0,99.9,102.8,105.3,109.4],wf:[98.61,99.73,101.97,105.09,107.97,112.44],bn:240,ch:36.8,cp:2,bp:1024,pp:1024,sb:[409.60,407.06,399.61,378.82,354.25,337.81],sbx:16384,ncr:[38.10,38.10,36.82,35.62,35.62,35.62]};
+const IM={b:[273.07,269.70,269.70,259.04,259.04,255.00],r:[439.84,399.61,330.99,315.08,255.00,255.00],rs:[630.15,574.88,474.90,448.88,364.09,364.09],rc:[1456.36,1310.72,1092.27,1057.03,851.12,851.12],gr:[6.02,6.02,6.02,6.02,6.02,5.78],w:[97.97,99.09,100.75,102.53,104.93,107.29],wo:[97.0,98.0,99.5,101.1,103.3,105.5],wf:[98.70,99.82,101.48,103.27,105.66,108.01],bn:252,ch:35.6,cp:2,bp:1092.27,pp:1092.27};
 const MODELS={
-  my6:{name:"マイジャグラーⅥ",...MV,splitNote:"単独REGは前作マイジャグラーⅤの調査値を流用"},
+  my6:{name:"マイジャグラーⅥ",...MV,splitNote:"前作マイジャグラーⅤのガリぞう氏調査値を流用",src:"前作Ⅴの値を流用"},
   my5:{name:"マイジャグラーⅤ",...MV,splitNote:"ガリぞう氏調査値"},
-  neo:{name:"ネオアイムジャグラーEX",...IM,splitNote:"単独REGは前作アイムジャグラーEX(6号機)の調査値を流用"},
-  im6:{name:"アイムジャグラーEX(6号機)",...IM,splitNote:"ガリぞう氏調査値"},
-  funky2:{name:"ファンキージャグラー2",b:[266.4,259.0,256.0,249.2,240.1,219.9],r:[439.8,407.1,366.1,322.8,299.3,262.1],gr:[5.94,5.91,5.89,5.85,5.78,5.70],w:[97.87,99.41,100.73,102.95,105.29,110.05],bn:240,bigHeavy:true},
-  happy:{name:"ハッピージャグラーVⅢ",b:[273.1,270.8,263.2,254.0,239.2,226.0],r:[397.2,362.1,332.7,300.6,273.1,256.0],gr:[6.05,6.02,5.99,5.85,5.82,5.79],w:[97.60,98.71,100.51,103.47,106.48,109.12],bn:240},
-  gogo3:{name:"ゴーゴージャグラー3",b:[259.0,258.0,257.0,254.0,247.3,234.9],r:[354.2,332.7,306.2,268.6,247.3,234.9],gr:[6.27,6.21,6.15,6.08,6.01,5.93],w:[98.02,99.06,100.35,102.53,104.75,107.48],bn:240},
-  girls:{name:"ジャグラーガールズSS",b:[273.1,270.8,260.1,250.1,243.6,226.0],r:[381.0,350.5,316.6,281.3,270.8,252.1],gr:[5.99,5.99,5.99,5.99,5.90,5.84],w:[97.83,98.75,100.80,103.11,104.94,108.53],bn:240},
-  mister:{name:"ミスタージャグラー",b:[268.6,267.5,260.1,249.2,240.9,237.4],r:[374.5,354.2,331.0,291.3,257.0,237.4],gr:[6.30,6.23,6.16,6.09,6.02,5.95],w:[97.99,99.01,100.85,103.76,106.60,108.42],bn:240},
-  ultra:{name:"ウルトラミラクルジャグラー",b:[267.5,261.1,256.0,242.7,233.2,216.3],r:[425.6,402.1,350.5,322.8,297.9,277.7],gr:[5.94,5.94,5.94,5.94,5.88,5.82],w:[97.88,98.99,100.67,102.99,105.50,109.14],bn:240,bigHeavy:true}
+  neo:{name:"ネオアイムジャグラーEX",...IM,splitNote:"前作アイムジャグラーEX(6号機)のガリぞう氏調査値を流用",src:"前作アイムEXの値を流用"},
+  im6:{name:"アイムジャグラーEX(6号機)",...IM,splitNote:"ガリぞう氏調査値(単独:重複比率は5号機同様と仮定)"},
+  funky2:{name:"ファンキージャグラー2",b:[266.41,259.04,256.00,249.19,240.06,219.92],r:[439.84,407.06,366.12,322.84,299.25,262.14],rs:[636.27,574.88,512.00,448.88,409.60,356.17],rc:[1424.70,1394.38,1285.02,1149.75,1110.78,992.97],gr:[5.94,5.92,5.88,5.83,5.76,5.67],w:[97.83,99.36,100.99,103.40,106.04,111.35],wo:[97.0,98.5,99.8,102.0,104.3,109.0],wf:[98.57,100.08,101.72,104.14,106.78,112.08],bn:240,ch:35.62,cp:2,bp:1092.27,pp:1092.27,bigHeavy:true,sb:[402.06,397.19,397.19,385.51,378.82,339.56],sbx:32768,splitNote:"ガリぞう氏調査値"},
+  happy:{name:"ハッピージャグラーVⅢ",b:[273.07,270.81,263.20,254.02,239.18,225.99],r:[397.19,362.08,332.67,300.62,273.07,256.00],rs:[636.27,569.88,532.81,478.36,436.91,425.56],rc:[1057.03,992.97,885.62,809.09,728.18,642.51],gr:[6.04,6.01,5.98,5.84,5.81,5.79],w:[97.90,99.15,101.00,104.20,107.45,110.34],wo:[97.0,98.1,99.9,102.9,105.8,108.4],wf:[98.78,100.03,101.89,105.08,108.33,111.22],bn:240,ch:63.5,cp:2,bp:655.36,pp:655.36,ncr:[62.24,62.47,62.95,64.00,64.57,65.34],splitNote:"ガリぞう氏調査値。この機種はチェリー重複REGの設定差が大きめ"},
+  gogo3:{name:"ゴーゴージャグラー3",b:[259.04,258.02,257.00,254.02,247.31,234.90],r:[354.25,332.67,306.24,268.59,247.31,234.90],gr:[6.25,6.20,6.15,6.07,6.00,5.92],w:[98.39,99.36,100.60,102.83,105.08,107.83],wo:[97.2,98.2,99.4,101.6,103.8,106.5],wf:[99.08,100.05,101.29,103.51,105.76,108.51],bn:240,ch:35.6,cp:2,bp:1092.27,pp:1092.27,noSplit:"ガリぞう氏によると単独・重複とも均一の設定差の可能性が高く、合算で判断して問題ないとされています。"},
+  girls:{name:"ジャグラーガールズSS",b:[273.07,270.81,260.06,250.14,243.63,225.99],r:[381.02,350.46,316.60,281.27,270.81,252.06],gr:[5.98,5.98,5.98,5.98,5.88,5.83],w:[98.09,99.02,101.09,103.42,105.32,108.84],wo:[97.0,97.9,99.9,102.1,104.0,107.5],wf:[98.78,99.71,101.77,104.10,106.00,109.52],bn:240,ch:35.6,cp:2,bp:1092.27,pp:1092.27,noSplit:"単独・重複の比率は未判明です(ガリぞう氏も近似値を出せないとしています)。"},
+  mister:{name:"ミスタージャグラー",b:[268.59,267.49,260.06,249.19,240.94,237.45],r:[374.49,354.25,330.99,291.27,257.00,237.45],gr:[6.29,6.22,6.15,6.09,6.02,5.96],w:[98.09,99.11,100.96,103.84,106.69,108.49],wo:[97.0,98.0,99.8,102.7,105.5,107.3],wf:[99.50,100.52,102.37,105.24,108.09,109.89],bn:240,ch:37.24,cp:4,bp:655.4,pp:420.1},
+  ultra:{name:"ウルトラミラクルジャグラー",b:[267.49,261.10,256.00,242.73,233.22,216.29],r:[425.56,402.06,350.46,322.84,297.89,277.69],gr:[5.93,5.93,5.93,5.93,5.87,5.81],w:[98.06,99.18,100.93,103.27,105.72,109.38],wo:[97.0,98.1,99.8,102.1,104.5,108.1],wf:[98.80,99.92,101.66,104.00,106.45,110.11],bn:240,ch:36.6,cp:2,bp:1024,pp:1024,bigHeavy:true,ncr:[37.22,37.22,37.22,37.09,36.13,35.48]}
 };
 const PRESETS={even:[1,1,1,1,1,1]};
-const FIELDS=["g","b","r","rs","rc","gr","gg","diff"];
+const FIELDS=["g","b","r","rs","rc","gr","gg","diff","bs","bc","nc"];
 const $=id=>document.getElementById(id);
-const blankTab=()=>({name:"",model:"my6",style:"aim",useRev:false,g:"",b:"",r:"",rs:"",rc:"",gr:"",gg:"",diff:""});
-let S={tabs:[blankTab()],cur:0,prior:"even",gph:"800",yen:"20",ig:"",ib:"",ir:""};
+const blankTab=()=>({name:"",model:"my6",style:"aim",useRev:false,g:"",b:"",r:"",rs:"",rc:"",gr:"",gg:"",diff:"",bs:"",bc:"",nc:""});
+let S={tabs:[blankTab()],cur:0,prior:"even",gph:"800",yen:"20",ig:"",ib:"",ir:"",gend:"8000",ilist:"",hrs:""};
 
 const sel=$("model");
 Object.entries(MODELS).forEach(([k,m])=>{const o=document.createElement("option");o.value=k;o.textContent=m.name;sel.appendChild(o)});
@@ -395,7 +438,23 @@ function load(){
 }
 
 /* ---------- priors ---------- */
+function parseList(){
+  return (S.ilist||"").split(/\n/).map(l=>l.trim().split(/[\s,、]+/).map(Number)).filter(a=>a.length>=3&&a.slice(0,3).every(v=>Number.isFinite(v)&&v>=0)&&a[0]>0&&a[1]+a[2]<=a[0]).map(a=>({G:a[0],B:a[1],R:a[2]}));
+}
+function emPrior(m,rows){
+  const L=rows.map(r=>{const l=[];for(let i=0;i<6;i++){const pb=1/m.b[i],pr=1/m.r[i];l.push(r.B*Math.log(pb)+r.R*Math.log(pr)+(r.G-r.B-r.R)*Math.log(1-pb-pr))}const mx=Math.max(...l);return l.map(v=>Math.exp(v-mx))});
+  let pi=[1,1,1,1,1,1].map(v=>v/6);
+  for(let it=0;it<500;it++){
+    const acc=[0,0,0,0,0,0];
+    L.forEach(l=>{let s=0;const q=l.map((v,i)=>{const w=v*pi[i];s+=w;return w});q.forEach((w,i)=>acc[i]+=w/s)});
+    const n=rows.length+3;pi=acc.map(a=>(a+0.5)/n);
+  }
+  const tG=rows.reduce((a,r)=>a+r.G,0),tB=rows.reduce((a,r)=>a+r.B,0),tR=rows.reduce((a,r)=>a+r.R,0);
+  return {p:pi,G:tG,B:tB,R:tR,clipped:false,em:rows.length};
+}
 function islandPrior(m){
+  const rows=parseList();
+  if(rows.length>=3)return emPrior(m,rows);
   const G=nonneg(S.ig),R=nonneg(S.ir),B=nonneg(S.ib);
   if(!G||R===null||G<1000)return null;
   const x=m.r.map(r=>1/r);
@@ -407,6 +466,19 @@ function islandPrior(m){
   for(let i=0;i<200;i++){const c=(a+b)/2;if(meanAt(c).m<t)a=c;else b=c}
   return {p:meanAt((a+b)/2).p,G,B,R,clipped};
 }
+function neutralPrior(m,t){
+  const W=m.wo,target=100;
+  const lo=Math.min(...W),hi=Math.max(...W);
+  if(target<=lo||target>=hi)return [1,1,1,1,1,1];
+  const meanAt=l=>{const mx=Math.max(...W.map(v=>l*v));const w=W.map(v=>Math.exp(l*v-mx));const s=w.reduce((a,c)=>a+c,0);return {p:w.map(v=>v/s),m:w.reduce((a,c,i)=>a+c*W[i],0)/s}};
+  let a=-50,b=50;for(let i=0;i<200;i++){const c=(a+b)/2;if(meanAt(c).m<target)a=c;else b=c}
+  return meanAt((a+b)/2).p;
+}
+function evPosterior(t){
+  const m=MODELS[t.model];
+  if(S.prior==="island"&&islandPrior(m))return {d:posterior(t),basis:"island"};
+  return {d:posterior(t,false,neutralPrior(m,t)),basis:"neutral"};
+}
 function getPrior(m){
   if(S.prior==="island"){const ip=islandPrior(m);return ip?{p:ip.p,ip}:{p:PRESETS.even,ip:null,missing:true}}
   return {p:PRESETS[S.prior]};
@@ -415,42 +487,53 @@ function getPrior(m){
 /* ---------- grape reverse calc ---------- */
 function reverseGrape(t,m,G,B,R){
   const d=toNum(t.diff);if(d===null||!G)return null;
-  const cf=t.style==="aim"?1:2/3;
-  const other=B*(m.bn-0.75)+R*(96-0.75)+G*(3/7.3)+G*(2*cf/35);
+  const cf=t.style==="free"?2/3:1;
+  const cap=t.style==="full"?[1,1]:[0.222,0.101];
+  const other=B*(m.bn-0.75)+R*(96-0.75)+G*(3/7.3)+G*(m.cp*cf/m.ch)+G*(14*cap[0]/m.bp+10*cap[1]/m.pp);
   const grapes=(d+3*G-other)/8;
-  const pr=1/7.3,pc=cf/35;
-  const sd=Math.sqrt(9*G*pr*(1-pr)+4*G*pc*(1-pc)+40*40)/8;
+  const pr=1/7.3,pc=cf/m.ch;
+  const pbe=cap[0]/m.bp,ppi=cap[1]/m.pp;
+  const sd=Math.sqrt(9*G*pr*(1-pr)+m.cp*m.cp*G*pc*(1-pc)+196*G*pbe*(1-pbe)+100*G*ppi*(1-ppi)+40*40)/8;
   return {grapes,sd};
 }
 
 /* ---------- core ---------- */
-function posterior(t){
+function posterior(t,bonusOnly,priorOverride){
   const m=MODELS[t.model];
   const G=nonneg(t.g),B=nonneg(t.b),R=nonneg(t.r);
   if(G===null||B===null||R===null||G<=0||B+R>G)return null;
-  const {p:pr}=getPrior(m);const ps=pr.reduce((a,c)=>a+c,0);
+  const pr=priorOverride||getPrior(m).p;const ps=pr.reduce((a,c)=>a+c,0);
   const RS=nonneg(t.rs),RC=nonneg(t.rc);
-  const useSplit=!!m.rs&&RS!==null&&RC!==null&&RS+RC===R;
+  const useSplit=!bonusOnly&&!!m.rs&&RS!==null&&RC!==null&&RS+RC===R;
   const GR=nonneg(t.gr),GG=nonneg(t.gg);
-  const useCount=GR!==null&&GG!==null&&GG>0&&GR<=GG;
+  const useCount=!bonusOnly&&GR!==null&&GG!==null&&GG>0&&GR<=GG;
   const rev=reverseGrape(t,m,G,B,R);
-  const useRev=!useCount&&t.useRev&&rev&&rev.grapes>0&&rev.grapes<G;
+  const useRev=!bonusOnly&&!useCount&&t.useRev&&rev&&rev.grapes>0&&rev.grapes<G;
+  const BS=nonneg(t.bs),BC=nonneg(t.bc);
+  const useBig=!bonusOnly&&!!m.sb&&BS!==null&&BC!==null&&BS+BC===B;
+  const NC=nonneg(t.nc);
+  const useNc=!bonusOnly&&!!m.ncr&&NC!==null&&GG!==null&&GG>0&&NC<=GG;
   const logs=[];
   for(let i=0;i<6;i++){
-    const pb=1/m.b[i];let L=B*Math.log(pb);
+    const pb=1/m.b[i];let L;
+    if(useBig){const ps1=1/m.sb[i]+1/m.sbx,pc1=pb-ps1;L=BS*Math.log(ps1)+BC*Math.log(pc1)}
+    else L=B*Math.log(pb);
     if(useSplit){const a=1/m.rs[i],c=1/m.rc[i];L+=RS*Math.log(a)+RC*Math.log(c)+(G-B-R)*Math.log(1-pb-a-c)}
     else{const p=1/m.r[i];L+=R*Math.log(p)+(G-B-R)*Math.log(1-pb-p)}
     const q=1/m.gr[i];
     if(useCount)L+=GR*Math.log(q)+(GG-GR)*Math.log(1-q);
     else if(useRev)L+=0.5*(rev.grapes*Math.log(q)+(G-rev.grapes)*Math.log(1-q));
+    if(useNc){const c=1/m.ncr[i];L+=NC*Math.log(c)+(GG-NC)*Math.log(1-c)}
     L+=Math.log(pr[i]/ps);logs.push(L);
   }
   const mx=Math.max(...logs);let s=0;const e=logs.map(l=>{const v=Math.exp(l-mx);s+=v;return v});
   const post=e.map(v=>v/s);
-  return {m,G,B,R,post,useSplit,useCount,useRev,rev,RS,RC,GR,GG};
+  return {m,G,B,R,post,useSplit,useCount,useRev,rev,RS,RC,GR,GG,useBig,BS,BC,useNc,NC};
 }
 
 /* ---------- UI ---------- */
+const STYLE_NAME={aim:"チェリー狙い",full:"フル攻略",free:"適当打ち"};
+function wOf(m,t){return t&&t.style==="free"?m.wo:t&&t.style==="full"?m.wf:m.w}
 function setRing(a,b){
   const C=2*Math.PI*52, C2=2*Math.PI*40;
   $("ringA").style.strokeDashoffset=C*(1-a/100);
@@ -465,22 +548,32 @@ function renderTabs(){
 function syncForm(){
   const t=T();FIELDS.forEach(k=>$(k).value=t[k]??"");
   $("tname").value=t.name||"";sel.value=t.model;$("useRev").checked=!!t.useRev;
-  ["gph","yen","ig","ib","ir"].forEach(k=>$(k).value=S[k]??"");
+  ["gph","yen","ig","ib","ir","gend","ilist","hrs"].forEach(k=>$(k).value=S[k]??"");
   renderSpec();
 }
 function renderSpec(){
   const m=MODELS[T().model];
   $("modelName").textContent=m.name;
   const hasSplit=!!m.rs;
-  $("regNote").textContent=hasSplit?"単独REGとチェリー重複REGに分けると精度が上がります。合計がREG回数と一致したときだけ使います。("+m.splitNote+")":"この機種は単独/チェリー重複REGの信頼できる設定別数値が見つからないため、内訳は計算に使いません。";
+  $("regNote").textContent=hasSplit?"単独REGとチェリー重複REGに分けると精度が上がります。合計がREG回数と一致したときだけ使います。("+m.splitNote+")":"この機種は内訳を計算に使いません。"+(m.noSplit||"単独/チェリー重複REGの設定別数値が見つかっていません。");
   $("rs").disabled=!hasSplit;$("rc").disabled=!hasSplit;document.querySelectorAll('button[data-t="rs"],button[data-t="rc"]').forEach(b=>b.disabled=!hasSplit);
-  let h="<tr><th>設定</th><th>BIG</th><th>REG</th><th>合算</th><th>ブドウ</th><th>機械割</th></tr>";
-  for(let i=0;i<6;i++){const c=1/(1/m.b[i]+1/m.r[i]);h+=`<tr><td>${i+1}</td><td>1/${m.b[i]}</td><td>1/${m.r[i]}</td><td>1/${c.toFixed(1)}</td><td>1/${m.gr[i].toFixed(2)}</td><td>${m.w[i].toFixed(1)}%</td></tr>`}
+  const hasBig=!!m.sb;
+  $("bigNote").textContent=hasBig?"レアチェリー重複のBIGはチェリー重複に、1枚役重複のBIGは単独に数えてください。合計がBIG回数と一致したときだけ使います。(ガリぞう氏調査値"+(m.src?"・"+m.src:"")+")":"この機種はBIG内訳を計算に使いません(設定別の数値が判明している機種:マイⅤ・Ⅵ、ファンキー2)。";
+  $("bs").disabled=!hasBig;$("bc").disabled=!hasBig;
+  document.querySelectorAll('button[data-t="bs"],button[data-t="bc"]').forEach(b=>b.disabled=!hasBig);
+  const hasNc=!!m.ncr;
+  $("ncNote").textContent=hasNc?"ボーナスと重複しなかったチェリーの回数です(ブドウと同じG数で数えてください)。この機種は設定差があります。":"この機種はペカらないチェリーに設定差がない、または未判明のため計算に使いません。";
+  $("nc").disabled=!hasNc;
+  document.querySelectorAll('button[data-t="nc"]').forEach(b=>b.disabled=!hasNc);
+  let h="<tr><th>設定</th><th>BIG</th><th>REG</th><th>合算</th><th>ブドウ</th><th>割(公表)</th><th>割(狙い)</th><th>割(フル)</th></tr>";
+  for(let i=0;i<6;i++){const c=1/(1/m.b[i]+1/m.r[i]);h+=`<tr><td>${i+1}</td><td>1/${m.b[i]}</td><td>1/${m.r[i]}</td><td>1/${c.toFixed(1)}</td><td>1/${m.gr[i].toFixed(2)}</td><td>${m.wo[i].toFixed(1)}%</td><td>${m.w[i].toFixed(1)}%</td><td>${m.wf[i].toFixed(1)}%</td></tr>`}
   const ratio=k=>"×"+(m[k][0]/m[k][5]).toFixed(2);
-  h+=`<tr><td>差</td><td>${ratio("b")}</td><td>${ratio("r")}</td><td>–</td><td>${ratio("gr")}</td><td>–</td></tr>`;
+  h+=`<tr><td>差</td><td>${ratio("b")}</td><td>${ratio("r")}</td><td>–</td><td>${ratio("gr")}</td><td>–</td><td>–</td><td>–</td></tr>`;
+  if(m.sb){h+="<tr><th>設定</th><th colspan='2'>単独BIG*</th><th colspan='3'>チェリー重複BIG*</th></tr>";for(let i=0;i<6;i++){const s1=1/m.sb[i]+1/m.sbx;h+=`<tr><td>${i+1}</td><td colspan="2">1/${(1/s1).toFixed(1)}</td><td colspan="3">1/${(1/(1/m.b[i]-s1)).toFixed(1)}</td></tr>`}}
+  if(m.ncr){h+="<tr><th>設定</th><th colspan='5'>ペカらないチェリー</th></tr>";for(let i=0;i<6;i++)h+=`<tr><td>${i+1}</td><td colspan="5">1/${m.ncr[i]}</td></tr>`}
   if(hasSplit){h+="<tr><th>設定</th><th colspan='2'>単独REG</th><th colspan='3'>チェリーREG</th></tr>";for(let i=0;i<6;i++)h+=`<tr><td>${i+1}</td><td colspan="2">1/${m.rs[i]}</td><td colspan="3">1/${m.rc[i]}</td></tr>`}
   $("spec").innerHTML=h;
-  $("specNote").textContent="「差」は設定1→6で何倍当たりやすくなるか。数字が大きいほど設定判別に効きます。機械割はチェリー狙い条件、ブドウは推定値。"+(m.bigHeavy?"この機種は設定6でもBIGとREGが1:1ではなく、BIGにも設定差があります。":"");
+  $("specNote").textContent="「差」は設定1→6で何倍当たりやすくなるか。数字が大きいほど設定判別に効きます。割(公表)はメーカー公表値。ブドウ・割(狙い)・割(フル)・内訳はガリぞう氏の独自調査値"+(m.src?"("+m.src+")":"")+"。"+(m.bigHeavy?"この機種は設定6でもBIGとREGが1:1ではなく、BIGにも設定差があります。":"");
 }
 
 function update(){
@@ -490,6 +583,8 @@ function update(){
   $("rb").textContent=fmtRate(B,G);$("rr").textContent=fmtRate(R,G);
   $("rc2").textContent=(G&&B!==null&&R!==null&&B+R>0)?"合算 "+fmtRate(B+R,G)+"(BIG:REG = "+B+":"+R+")":"";
   $("rg").textContent=fmtRate(nonneg(t.gr),nonneg(t.gg));
+  $("rnc").textContent=fmtRate(nonneg(t.nc),nonneg(t.gg));
+  {const BS=nonneg(t.bs),BC=nonneg(t.bc);$("bigMsg").textContent=(m.sb&&(BS!==null||BC!==null))?((BS!==null&&BC!==null&&BS+BC===B)?"内訳を計算に使っています。":"単独とチェリー重複の合計がBIG回数と一致していないので、内訳は使っていません。"):""}
   document.querySelectorAll("#style button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.s===t.style?"true":"false"));
   document.querySelectorAll("#seg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.p===S.prior?"true":"false"));
 
@@ -498,8 +593,8 @@ function update(){
   const pct=pri.p.map((v,i)=>"設定"+(i+1)+" "+Math.round(v/ps*100)+"%").join("、");
   const ip=islandPrior(m);
   if(ip){
-    let w=0;ip.p.forEach((p,i)=>w+=p*m.w[i]);
-    $("islandOut").textContent=`シマのREG ${fmtRate(ip.R,ip.G)}、合算 ${ip.B!==null?fmtRate(ip.B+ip.R,ip.G):"–"}。推定の平均機械割は約${w.toFixed(1)}%です。`+(ip.clipped?"(REG確率が設定1〜6の範囲外のため端に寄せています)":"")+(ip.G<10000?" 合計G数が少ないので推定はブレやすいです。":"");
+    let w=0;const W=wOf(m,t);ip.p.forEach((p,i)=>w+=p*W[i]);
+    $("islandOut").textContent=(ip.em?`台ごとのデータ${ip.em}台分から推定。`:"")+`シマのREG ${fmtRate(ip.R,ip.G)}、合算 ${ip.B!==null?fmtRate(ip.B+ip.R,ip.G):"–"}。推定の平均機械割は約${w.toFixed(1)}%です。`+(ip.clipped?"(REG確率が設定1〜6の範囲外のため端に寄せています)":"")+(ip.G<10000?" 合計G数が少ないので推定はブレやすいです。":"");
   }else $("islandOut").textContent="同じ機種のシマ合計を入れるとシマの状況を表示します(合計1000G以上)。";
   $("priorline").textContent=S.prior==="even"?"設定1〜6が同じ割合で入っている前提。データだけで判断します。"
     :S.prior==="island"?(pri.missing?"シマのデータが未入力なので、均等で計算しています。下の「シマのデータを入れる」から入力してください。":"シマのデータから推定した割合:"+pct)
@@ -514,19 +609,20 @@ function update(){
   }else $("revOut").textContent=toNum(t.diff)!==null?"計算できませんでした。総回転数・BIG・REG・差枚を確認してください。":"差枚を入れると推定ブドウ確率を表示します。";
 
   const d=posterior(t);
-  render(d,t);
+  const ev=evPosterior(t);
+  render(d,t,ev);
   renderCompare();
   save();
 }
 
-function render(d,t){
+function render(d,t,ev){
   const bars=$("bars");
-  const clear=()=>{["es","ev","eh","ey","e100","ecur"].forEach(k=>$(k).textContent="–")};
+  const clear=()=>{["es","ev","eh","ey","e100","ecur","eclose"].forEach(k=>$(k).textContent="–")};
   if(!d){
     $("p56").innerHTML="–<small>%</small>";$("p4up").textContent="–%";setRing(0,0);
-    $("verdict").textContent="総回転数・BIG・REGを入れてください。";
+    {const G=nonneg(t.g),B=nonneg(t.b),R=nonneg(t.r);$("verdict").textContent=(G!==null&&B!==null&&R!==null&&B+R>G)?"BIGとREGの合計が総回転数を超えています。数字を確認してください。":(G===0?"総回転数が0です。":"総回転数・BIG・REGを入れてください。")}
     bars.innerHTML=[1,2,3,4,5,6].map(s=>`<div class="bar"><span class="bl">設定${s}</span><div class="track"><div class="fill"></div></div><span class="bv">–</span></div>`).join("");
-    clear();$("guide").innerHTML="<p>データを入れると表示されます。</p>";$("splitMsg").textContent="";return;
+    clear();$("guide").innerHTML="<p>データを入れると表示されます。</p>";$("splitMsg").textContent="";drawChart(null,t);return;
   }
   const {m,G,B,R,post,useSplit,useCount,useRev,RS,RC}=d;
   $("splitMsg").textContent=(m.rs&&(RS!==null||RC!==null))?(useSplit?"内訳を計算に使っています。":"単独とチェリーの合計がREG回数と一致していないので、内訳は使っていません。"):"";
@@ -534,25 +630,28 @@ function render(d,t){
   $("p56").innerHTML=p56.toFixed(0)+"<small>%</small>";$("p4up").textContent=p4.toFixed(0)+"%";setRing(p56,p4);
   const max=Math.max(...post);
   bars.innerHTML=post.map((p,i)=>`<div class="bar${i>=4?" hi":""}"><span class="bl">設定${i+1}</span><div class="track"><div class="fill" style="width:${(p/max*100).toFixed(1)}%"></div></div><span class="bv">${(p*100).toFixed(1)}%</span></div>`).join("");
-  let w=0,es=0,p100=0;post.forEach((p,i)=>{w+=p*m.w[i];es+=p*(i+1);p100+=p*(1-Math.pow(1-1/m.b[i]-1/m.r[i],100))});
+  const W=wOf(m,t);const pev=(ev&&ev.d)?ev.d.post:post;let w=0,es=0,p100=0;pev.forEach((p,i)=>{w+=p*W[i];p100+=p*(1-Math.pow(1-1/m.b[i]-1/m.r[i],100))});post.forEach((p,i)=>{es+=p*(i+1)});
   $("es").textContent=es.toFixed(2);
   $("ev").innerHTML=w.toFixed(1)+"<small>%</small>";
   const gph=nonneg(S.gph)||800,yen=toNum(S.yen)||20,eh=gph*3*(w/100-1);
   $("eh").innerHTML=(eh>=0?"+":"")+Math.round(eh)+"<small>枚</small>";
   const ey=eh*yen;$("ey").innerHTML=(ey>=0?"+":"−")+Math.abs(Math.round(ey)).toLocaleString()+"<small>円</small>";
   $("e100").innerHTML=(p100*100).toFixed(0)+"<small>%</small>";
+  {const h=toNum(S.hrs);if(h&&h>0){const ec=eh*h;$("eclose").innerHTML=`${ec>=0?"+":"−"}${Math.abs(Math.round(ec))}<small>枚</small> (${ec>=0?"+":"−"}${Math.abs(Math.round(ec*yen)).toLocaleString()}<small>円</small>)`}else $("eclose").innerHTML='<small style="font-weight:400;color:var(--label2)">閉店までの時間を入れると表示</small>'}
   const diff=toNum(t.diff);
   $("ecur").innerHTML=diff!==null?((3*G+diff)/(3*G)*100).toFixed(1)+"<small>%</small>":"–";
 
   let v;
-  if(p4>=70)v="高設定寄り。続行が有力です。";
-  else if(p4>=50)v="やや高設定寄り。様子を見ながら続行。";
-  else if(p4>=30)v="中間〜低設定の可能性もあり、判断は保留。";
-  else v="低設定寄り。ヤメも検討。";
+  const evTxt=`期待機械割${w.toFixed(1)}%(${STYLE_NAME[t.style]||"チェリー狙い"}・${ev&&ev.basis==="island"?"シマ推定の前提":"控えめな前提"})。`;
+  if(w>=102)v="続行。"+evTxt+"期待値がはっきりプラスです。";
+  else if(w>=100.5)v="続行寄り。"+evTxt+"わずかにプラスなので、データが増えたら再確認を。";
+  else if(w>=99)v="判断は保留。"+evTxt+"ほぼトントンです。";
+  else v="ヤメ寄り。"+evTxt+"期待値がマイナスです。";
   if(G<2000)v+=" ただし2000G未満なのでまだブレが大きいです。";
   else if(G<4000)v+=" 4000G前後まで回すと判断が固まりやすくなります。";
   if(!useCount&&!useRev&&p56>=40&&Math.abs(m.r[4]-m.r[5])<1)v+=" この機種は設定5と6のREGが同じなので、ブドウなしでは区別がほぼできません。";
-  if(eh<0&&p4>=50)v+=" ただし期待差枚はまだマイナスです。";
+
+  if(useCount||useRev||useSplit||d.useBig||d.useNc){const b0=posterior(t,true);if(b0)v+=` (ボーナス回数だけで計算すると設定5・6は${((b0.post[4]+b0.post[5])*100).toFixed(0)}%。小役や内訳の推定値に頼らない場合の参考値です)`}
   $("verdict").textContent=v;
 
   const line=m.r[3],need=g=>Math.ceil(g/line);
@@ -562,15 +661,74 @@ function render(d,t){
   else L.push(`<p>5000G以上回っているので、この数字はかなり信頼できます。</p>`);
   L.push(m.bigHeavy?`<p>この機種はBIGにも設定差があるので、BIGが多いことも高設定の材料になります。</p>`:`<p>BIGは設定差が小さいので、BIGが多いだけで高設定とは言えません。</p>`);
   $("guide").innerHTML=L.join("");
+  drawChart(ev&&ev.d?ev.d:d,t);
+}
+
+const SCOL=["#8e8e93","#5ac8fa","#34c759","#ffcc00","#ff9500","#ff2d55"];
+function perGame(m,i){
+  const pb=1/m.b[i],pr=1/m.r[i];
+  const mean=3*wOf(m,CURT)[i]/100;
+  const e2=pb*m.bn*m.bn+pr*96*96+(1/m.gr[i])*64+(1/7.3)*9+(1/m.ch)*m.cp*m.cp;
+  return {mu:mean-3,sd:Math.sqrt(Math.max(e2-mean*mean,1))};
+}
+const sg=v=>(v>=0?"+":"−")+Math.abs(Math.round(v));
+let CURT=null;
+function drawChart(d,t){
+  CURT=t;
+  const svg=$("chart").querySelector("svg"),leg=$("legend");
+  const m=MODELS[t.model];
+  const G=d?d.G:0;
+  let end=nonneg(S.gend)||8000;end=Math.max(end,G+500,1000);end=Math.min(end,20000);
+  // current point
+  let cur=null,est=false;
+  if(d){
+    const diff=toNum(t.diff);
+    if(diff!==null)cur=diff;
+    else{let grp=0;d.post.forEach((p,i)=>grp+=p/m.gr[i]);cur=d.B*m.bn+d.R*96+G*(8*grp+3/7.3+m.cp/m.ch-3);est=true}
+  }
+  // projection
+  let mu=0,v=0;
+  if(d){d.post.forEach((p,i)=>{const s=perGame(m,i);mu+=p*s.mu});d.post.forEach((p,i)=>{const s=perGame(m,i);v+=p*(s.sd*s.sd+(s.mu-mu)*(s.mu-mu))})}
+  const sdg=Math.sqrt(v);
+  const N=40,lines=[];
+  for(let i=0;i<6;i++){const s=perGame(m,i);lines.push([...Array(N+1)].map((_,k)=>{const x=end*k/N;return [x,s.mu*x]}))}
+  let proj=[],band=[];
+  if(d){for(let k=0;k<=N;k++){const x=G+(end-G)*k/N;const y=cur+mu*(x-G);const s=sdg*Math.sqrt(x-G);proj.push([x,y]);band.push([x,y-s,y+s])}}
+  // y range
+  let ys=[0];lines.forEach(l=>l.forEach(p=>ys.push(p[1])));band.forEach(b=>{ys.push(b[1],b[2])});if(cur!==null)ys.push(cur);
+  let ymin=Math.min(...ys),ymax=Math.max(...ys);const pad=(ymax-ymin)*0.08||100;ymin-=pad;ymax+=pad;
+  const step=[250,500,1000,2000,5000].find(s=>(ymax-ymin)/s<=6)||5000;
+  ymin=Math.floor(ymin/step)*step;ymax=Math.ceil(ymax/step)*step;
+  const L=40,R=332,T=8,B=196;
+  const X=x=>L+(R-L)*x/end,Y=y=>B-(B-T)*(y-ymin)/(ymax-ymin);
+  const path=pts=>pts.map((p,i)=>(i?"L":"M")+X(p[0]).toFixed(1)+" "+Y(p[1]).toFixed(1)).join("");
+  let h="";
+  for(let y=ymin;y<=ymax+1e-6;y+=step){h+=`<line class="${y===0?"zero":"grid"}" x1="${L}" x2="${R}" y1="${Y(y)}" y2="${Y(y)}"/><text x="${L-4}" y="${Y(y)+3}" text-anchor="end">${y>0?"+":""}${y}</text>`}
+  const xs=end<=4000?1000:end<=10000?2000:5000;
+  for(let x=0;x<=end+1e-6;x+=xs){h+=`<text x="${X(x)}" y="${B+14}" text-anchor="middle">${x}</text>`}
+  lines.forEach((l,i)=>{h+=`<path d="${path(l)}" fill="none" stroke="${SCOL[i]}" stroke-width="1.5" opacity=".9"/>`});
+  if(d){
+    const up=band.map(b=>[b[0],b[2]]),dn=band.map(b=>[b[0],b[1]]).reverse();
+    h+=`<path d="${path(up)}${dn.map(p=>"L"+X(p[0]).toFixed(1)+" "+Y(p[1]).toFixed(1)).join("")}Z" fill="var(--purple)" opacity=".15"/>`;
+    h+=`<path d="${path(proj)}" fill="none" stroke="var(--purple)" stroke-width="2.5" stroke-dasharray="5 4"/>`;
+    h+=`<line x1="${X(G)}" x2="${X(G)}" y1="${T}" y2="${B}" stroke="var(--label3)" stroke-width="1" stroke-dasharray="2 3"/>`;
+    h+=`<circle cx="${X(G)}" cy="${Y(cur)}" r="5" fill="${est?"var(--card)":"var(--purple)"}" stroke="var(--purple)" stroke-width="2.5"/>`;
+  }
+  svg.innerHTML=h;
+  leg.innerHTML=SCOL.map((c,i)=>`<span><i style="background:${c}"></i>設定${i+1}</span>`).join("")+(d?`<span><i style="background:var(--purple)"></i>この台の予想</span>`:"");
+  if(d){
+    const fin=cur+mu*(end-G),s=sdg*Math.sqrt(end-G);
+    $("chartNote").textContent=`${end}G時点の予想差枚は約${sg(fin)}枚(約68%の確率で${sg(fin-s)}〜${sg(fin+s)}枚の範囲)。`+(est?"差枚が未入力なので、現在地(白丸)はボーナス回数からの推定です。":"")+" 細い線は各設定の平均的な推移です。";
+  }else $("chartNote").textContent="細い線は各設定の平均的な差枚の推移です。データを入れると、この台の今後の予想(紫の点線と帯)が出ます。";
 }
 
 function renderCompare(){
   const sec=$("cmpSec");
-  const rows=S.tabs.map((t,i)=>({t,i,d:posterior(t)})).filter(x=>x.d);
+  const rows=S.tabs.map((t,i)=>({t,i,d:posterior(t),e:evPosterior(t).d})).filter(x=>x.d&&x.e);
   if(S.tabs.length<2||rows.length<1){sec.hidden=true;return}
   sec.hidden=false;
   let h="<tr><th>台</th><th>G数</th><th>REG</th><th>5・6</th><th>4以上</th><th>期待割</th></tr>";
-  rows.forEach(({t,i,d})=>{let w=0;d.post.forEach((p,k)=>w+=p*d.m.w[k]);
+  rows.forEach(({t,i,d,e})=>{let w=0;const W=wOf(d.m,t);e.post.forEach((p,k)=>w+=p*W[k]);
     h+=`<tr><td>${t.name||((i+1)+"台目")}</td><td>${d.G}</td><td>${fmtRate(d.R,d.G)}</td><td>${((d.post[4]+d.post[5])*100).toFixed(0)}%</td><td>${((d.post[3]+d.post[4]+d.post[5])*100).toFixed(0)}%</td><td>${w.toFixed(1)}%</td></tr>`});
   $("cmp").innerHTML=h;
 }
@@ -585,7 +743,7 @@ document.querySelectorAll("button[data-t]").forEach(btn=>btn.addEventListener("c
   if(navigator.vibrate){try{navigator.vibrate(10)}catch(e){}}
 }));
 FIELDS.forEach(k=>$(k).addEventListener("input",()=>{T()[k]=$(k).value;update()}));
-["gph","yen","ig","ib","ir"].forEach(k=>$(k).addEventListener("input",()=>{S[k]=$(k).value;update()}));
+["gph","yen","ig","ib","ir","gend","ilist","hrs"].forEach(k=>$(k).addEventListener("input",()=>{S[k]=$(k).value;update()}));
 $("tname").addEventListener("input",()=>{T().name=$("tname").value;update()});
 $("tdel").addEventListener("click",()=>{if(S.tabs.length<2)return;S.tabs.splice(S.cur,1);S.cur=Math.max(0,S.cur-1);syncForm();update()});
 sel.addEventListener("change",()=>{T().model=sel.value;renderSpec();update()});
