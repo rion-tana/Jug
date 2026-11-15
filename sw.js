@@ -1,9 +1,9 @@
 // バージョンを上げると古いキャッシュが消えて新しい版に入れ替わります
-const VERSION = "jug-v14";
+const VERSION = "jug-v15";
 const CORE = ["./", "./index.html", "./manifest.webmanifest", "./icon-180.png", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", e => {
-  e.waitUntil(caches.open(VERSION).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(VERSION).then(c => Promise.all(CORE.map(u => c.add(u).catch(() => {})))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener("activate", e => {
@@ -18,7 +18,7 @@ self.addEventListener("fetch", e => {
   if (req.method !== "GET") return;
   const url = new URL(req.url);
 
-  // ページ本体:電波があれば最新版を取りに行き、なければキャッシュ
+  // ページ本体:電波があれば最新版、なければキャッシュ
   if (req.mode === "navigate") {
     e.respondWith(
       fetch(req, { cache: "no-cache" }).then(res => {
@@ -30,14 +30,14 @@ self.addEventListener("fetch", e => {
     return;
   }
 
-  // Googleフォントなど:一度読んだものはキャッシュから
-  if (url.origin === location.origin || url.host.endsWith("fonts.googleapis.com") || url.host.endsWith("fonts.gstatic.com")) {
+  // 同じサイトの画像など・ログイン機能の部品(www.gstatic.com):一度読んだものはキャッシュから
+  if (url.origin === location.origin || url.host === "www.gstatic.com" || url.host.endsWith("fonts.gstatic.com")) {
     e.respondWith(
       caches.match(req).then(hit => hit || fetch(req).then(res => {
-        const copy = res.clone();
-        caches.open(VERSION).then(c => c.put(req, copy));
+        if (res.ok || res.type === "opaque") { const copy = res.clone(); caches.open(VERSION).then(c => c.put(req, copy)); }
         return res;
-      }).catch(() => hit))
+      }))
     );
   }
+  // それ以外(Firebaseの通信など)はそのまま通す
 });

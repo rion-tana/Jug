@@ -192,12 +192,44 @@ footer{font-size:12px;color:var(--label2);margin:16px 16px 0;line-height:1.5}
 input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 input[type=number]{-moz-appearance:textfield}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.acctbtn{border:0;background:none;color:var(--blue);font-size:17px;padding:0;cursor:pointer;font-family:inherit}
+.acctbtn:disabled{color:var(--label3)}
+#acctSub.ok{color:var(--green)}#acctSub.warn{color:var(--orange)}#acctSub.err{color:var(--red)}
+dialog#authDlg{border:0;border-radius:14px;padding:16px;width:min(92vw,420px);background:var(--bg);color:var(--label);box-shadow:0 10px 40px rgba(0,0,0,.35)}
+dialog#authDlg::backdrop{background:rgba(0,0,0,.4)}
+.dlghead{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.dlghead b{font-size:20px}
+.autherr{color:var(--red);font-size:14px;min-height:1.2em;margin:10px 4px}
+.primary{width:100%;height:50px;border:0;border-radius:12px;background:var(--blue);color:#fff;font-size:17px;font-weight:600;cursor:pointer;font-family:inherit}
+.primary:disabled{opacity:.5}
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1 class="large">設定判別</h1>
   <p class="subtitle">6号機ジャグラー10機種・最大5台</p>
+  <div class="group" id="acct" style="margin-bottom:14px">
+    <div class="cell">
+      <span class="lbl" id="acctLbl">アカウント<small id="acctSub">ログインするとデータをクラウドに保存できます</small></span>
+      <button type="button" class="acctbtn" id="acctBtn">ログイン</button>
+    </div>
+  </div>
+  <dialog id="authDlg" aria-labelledby="authTitle">
+    <form method="dialog" id="authForm" novalidate>
+      <div class="dlghead"><b id="authTitle">ログイン</b><button type="button" class="acctbtn" id="authClose">閉じる</button></div>
+      <div class="seg" id="authMode" role="group" aria-label="ログインか新規登録">
+        <button type="button" data-m="in" aria-pressed="true">ログイン</button><button type="button" data-m="up" aria-pressed="false">新規登録</button>
+      </div>
+      <div class="group" style="margin-top:14px">
+        <div class="cell"><input class="textin" id="authEmail" type="email" autocomplete="username" inputmode="email" placeholder="メールアドレス" aria-label="メールアドレス"></div>
+        <div class="cell"><input class="textin" id="authPass" type="password" autocomplete="current-password" placeholder="パスワード(6文字以上)" aria-label="パスワード"></div>
+      </div>
+      <p class="autherr" id="authErr" role="alert"></p>
+      <button type="submit" class="primary" id="authGo">ログイン</button>
+      <button type="button" class="acctbtn" id="authReset" style="display:block;margin:14px auto 0">パスワードを忘れた方</button>
+      <p class="ftr" style="margin:14px 0 0">データはアカウントごとに分けて保存され、他の人からは見えません。ログインしなくても今まで通り使えます。</p>
+    </form>
+  </dialog>
 
   <div class="chips" id="tabs" role="tablist" aria-label="台"></div>
 
@@ -443,7 +475,13 @@ const nonneg=v=>{const n=toNum(v);return n===null||n<0?null:Math.floor(n)};
 const fmtRate=(n,d)=>(n&&d)?"1/"+(d/n).toFixed(1):"–";
 const T=()=>S.tabs[S.cur];
 
-function save(){try{localStorage.setItem("jug-v3",JSON.stringify(S))}catch(e){}}
+let LASTJ=null;
+window.JUG={_quiet:false,onSave:null,getState:()=>S,
+  setState(o){if(!o||!Array.isArray(o.tabs)||!o.tabs.length)return;JUG._quiet=true;try{S={...S,...o};S.tabs=o.tabs.map(t=>({...blankTab(),...t}));if(S.cur>=S.tabs.length)S.cur=0;if(S.prior!=="even"&&S.prior!=="island")S.prior="even";syncForm();update()}finally{JUG._quiet=false}},
+  hasData(){return S.tabs.some(t=>t.g||t.b||t.r)}};
+function save(){const j=JSON.stringify(S);try{localStorage.setItem("jug-v3",j)}catch(e){}
+  if(LASTJ===null){LASTJ=j;return}if(j===LASTJ)return;LASTJ=j;if(JUG._quiet)return;
+  try{localStorage.setItem("jug-ts",String(Date.now()))}catch(e){}if(JUG.onSave)JUG.onSave()}
 function load(){
   try{
     const o=JSON.parse(localStorage.getItem("jug-v3")||"null");
@@ -837,5 +875,108 @@ $("reset").addEventListener("click",()=>{const t=T();FIELDS.forEach(k=>t[k]="");
 load();syncForm();update();
 if("serviceWorker" in navigator){window.addEventListener("load",()=>{navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{r.update();document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")r.update()})}).catch(()=>{})})}
 </script>
+<script type="module">
+const CFG={apiKey:"AIzaSyDIz2KLkmLZmhVl81sgaWdagL4taoePx-4",authDomain:"jugtool.firebaseapp.com",projectId:"jugtool",storageBucket:"jugtool.firebasestorage.app",messagingSenderId:"845582650761",appId:"1:845582650761:web:d7ad45749ff8d08d98e558"};
+const V="11.0.2",U=`https://www.gstatic.com/firebasejs/${V}/`;
+const $=id=>document.getElementById(id);
+const sub=$("acctSub"),btn=$("acctBtn"),dlg=$("authDlg");
+function status(txt,cls){sub.textContent=txt;sub.className=cls||""}
+let A,F,auth,db,user=null,ref=null,unsub=null,timer=null,pending=false,mode="in";
+const lts=()=>+(localStorage.getItem("jug-ts")||0);
+const ERR={"auth/invalid-email":"メールアドレスの形式が正しくありません。","auth/invalid-credential":"メールアドレスかパスワードが違います。","auth/user-not-found":"メールアドレスかパスワードが違います。","auth/wrong-password":"メールアドレスかパスワードが違います。","auth/email-already-in-use":"このメールアドレスはすでに登録されています。「ログイン」から入ってください。","auth/weak-password":"パスワードは6文字以上にしてください。","auth/missing-password":"パスワードを入れてください。","auth/network-request-failed":"通信できませんでした。電波のある所でもう一度試してください。","auth/too-many-requests":"試行回数が多すぎます。少し時間をおいてください。","auth/unauthorized-domain":"このURLからのログインが許可されていません(管理者の設定が必要です)。","auth/operation-not-allowed":"メール/パスワードでのログインが有効になっていません(管理者の設定が必要です)。"};
+const msg=e=>ERR[e&&e.code]||("エラーが発生しました"+(e&&e.code?`(${e.code})`:""));
+
+async function push(){
+  if(!user||!ref)return;
+  clearTimeout(timer);
+  const ts=lts()||Date.now();
+  status(navigator.onLine?"保存中…":"オフライン。電波が戻ると自動で保存します","warn");
+  try{
+    await F.setDoc(ref,{data:JSON.stringify(JUG.getState()),updatedAt:ts,email:user.email||""});
+    pending=false;localStorage.setItem("jug-sync-uid",user.uid);
+    status(`${user.email} ・ クラウドに保存済み`,"ok");
+  }catch(e){
+    pending=true;status(navigator.onLine?"保存に失敗しました。自動でもう一度試します":"オフライン。電波が戻ると自動で保存します",navigator.onLine?"err":"warn");
+    timer=setTimeout(push,15000);
+  }
+}
+function apply(d){
+  try{JUG.setState(JSON.parse(d.data));localStorage.setItem("jug-ts",String(d.updatedAt||Date.now()));localStorage.setItem("jug-sync-uid",user.uid);status(`${user.email} ・ クラウドと同期済み`,"ok")}
+  catch(e){status("クラウドのデータを読み込めませんでした","err")}
+}
+function startSync(){
+  ref=F.doc(db,"users",user.uid);
+  let first=true;
+  unsub=F.onSnapshot(ref,snap=>{
+    if(snap.metadata.hasPendingWrites)return;
+    const d=snap.data();
+    if(!d){push();first=false;return}
+    const rts=d.updatedAt||0;
+    if(first&&localStorage.getItem("jug-sync-uid")!==user.uid&&JUG.hasData()&&rts!==lts()){
+      first=false;
+      const useCloud=confirm("この端末にも入力済みのデータがあります。\n\nOK:クラウドに保存されているデータを使う\nキャンセル:この端末のデータでクラウドを上書きする");
+      if(useCloud)apply(d);else{localStorage.setItem("jug-ts",String(Date.now()));push()}
+      return;
+    }
+    first=false;
+    if(pending)return;
+    if(rts>lts())apply(d);
+    else if(rts<lts())push();
+    else{localStorage.setItem("jug-sync-uid",user.uid);status(`${user.email} ・ クラウドと同期済み`,"ok")}
+  },e=>status("クラウドに接続できません。データはこの端末に保存しています","warn"));
+}
+JUG.onSave=()=>{if(!user)return;pending=true;clearTimeout(timer);status("保存中…","warn");timer=setTimeout(push,1200)};
+addEventListener("online",()=>{if(user&&pending)push()});
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden"&&user&&pending)push()});
+
+/* ---- UI ---- */
+function setMode(m){mode=m;document.querySelectorAll("#authMode button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.m===m?"true":"false"));
+  $("authTitle").textContent=m==="in"?"ログイン":"新規登録";$("authGo").textContent=m==="in"?"ログイン":"登録してログイン";
+  $("authPass").autocomplete=m==="in"?"current-password":"new-password";$("authReset").style.display=m==="in"?"block":"none";$("authErr").textContent=""}
+document.querySelectorAll("#authMode button").forEach(b=>b.onclick=()=>setMode(b.dataset.m));
+$("authClose").onclick=()=>dlg.close();
+btn.onclick=async()=>{
+  if(!auth){status("ログイン機能を読み込めませんでした。電波のある所で開き直してください","err");return}
+  if(user){if(confirm("ログアウトしますか?\n(この端末のデータはそのまま残ります)")){await A.signOut(auth)}return}
+  setMode("in");dlg.showModal?dlg.showModal():dlg.setAttribute("open","");
+};
+$("authForm").onsubmit=async ev=>{
+  ev.preventDefault();
+  const em=$("authEmail").value.trim(),pw=$("authPass").value;const go=$("authGo");
+  if(!em){$("authErr").textContent="メールアドレスを入れてください。";return}
+  go.disabled=true;$("authErr").textContent="";
+  try{
+    if(mode==="in")await A.signInWithEmailAndPassword(auth,em,pw);
+    else await A.createUserWithEmailAndPassword(auth,em,pw);
+    $("authPass").value="";dlg.close();
+  }catch(e){$("authErr").textContent=msg(e)}finally{go.disabled=false}
+};
+$("authReset").onclick=async()=>{
+  const em=$("authEmail").value.trim();
+  if(!em){$("authErr").textContent="先にメールアドレスを入れてください。";return}
+  try{A.useDeviceLanguage(auth);await A.sendPasswordResetEmail(auth,em);$("authErr").style.color="var(--green)";$("authErr").textContent="パスワード再設定のメールを送りました(届かない場合は迷惑メールも確認してください)。";setTimeout(()=>$("authErr").style.color="",8000)}
+  catch(e){$("authErr").textContent=msg(e)}
+};
+
+/* ---- boot ---- */
+(async()=>{
+  try{
+    const [app,a,f]=await Promise.all([import(U+"firebase-app.js"),import(U+"firebase-auth.js"),import(U+"firebase-firestore.js")]);
+    A=a;F=f;
+    const fa=app.initializeApp(CFG);
+    auth=a.getAuth(fa);db=f.getFirestore(fa);
+    a.onAuthStateChanged(auth,u=>{
+      if(unsub){unsub();unsub=null}clearTimeout(timer);pending=false;
+      user=u;
+      if(u){btn.textContent="ログアウト";status(`${u.email} ・ 同期を確認中…`,"warn");startSync()}
+      else{btn.textContent="ログイン";ref=null;status("ログインするとデータをクラウドに保存できます")}
+    });
+  }catch(e){
+    btn.disabled=false;
+    status(navigator.onLine?"ログイン機能を読み込めませんでした":"オフライン中。データはこの端末に保存しています","warn");
+  }
+})();
+</script>
+
 </body>
 </html>
