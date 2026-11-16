@@ -208,6 +208,9 @@ dialog#authDlg::backdrop{background:rgba(0,0,0,.4)}
 .prow .sgn.m{color:var(--red)}
 .prow input{width:96px;height:36px;border:0;border-radius:9px;background:var(--fill);color:var(--label);font:inherit;font-size:17px;text-align:right;padding:0 10px;font-variant-numeric:tabular-nums}
 .prow .u{font-size:15px;color:var(--label2)}
+.hap{position:absolute;inset:0;border-radius:inherit;cursor:pointer;opacity:.011;overflow:hidden;z-index:2}
+.hap input{position:absolute;inset:0;margin:0;width:100%;height:100%;cursor:pointer}
+.stepper button,.quick button,.sgn,#recBtn{position:relative}
 /* app shell */
 [hidden]{display:none!important}
 .nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:8px 20px 8px;background:var(--navbg);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px)}
@@ -812,13 +815,13 @@ function drawChartNow(d,t){
 
 /* ---------- events ---------- */
 const GLOBAL=["ig","ib","ir"];
-document.querySelectorAll("button[data-t]").forEach(btn=>btn.addEventListener("click",()=>{
+document.querySelectorAll("button[data-t]").forEach(btn=>{addHap(btn);btn.addEventListener("click",e=>{if(e.target.tagName==="LABEL")return;
   const k=btn.dataset.t,obj=GLOBAL.includes(k)?S:T();
   let v=(parseInt(obj[k],10)||0)+parseInt(btn.dataset.d,10);
   if(!btn.dataset.neg)v=Math.max(0,v);
   obj[k]=String(v);if(k==="rc")T().rs="";if(k==="bc")T().bs="";$(k).value=v;update();
   haptic();
-}));
+})});
 FIELDS.forEach(k=>$(k).addEventListener("input",()=>{T()[k]=$(k).value;if(k==="rc")T().rs="";if(k==="bc")T().bs="";update()}));
 ["ig","ib","ir","ilist"].forEach(k=>$(k).addEventListener("input",()=>{S[k]=$(k).value;update()}));
 $("tname").addEventListener("input",()=>{T().name=$("tname").value;update()});
@@ -838,22 +841,22 @@ function renderPathRows(force){
   mp.forEach((_,g)=>{if(!ks.includes(g))ks.push(g)});ks.sort((a,b)=>a-b);
   const key=ks.join(",");if(!force&&key===PKEYS)return;PKEYS=key;
   $("pathRows").innerHTML=ks.map(g=>{const v=mp.get(g);const neg=v!=null&&v<0;return `<div class="prow"><span class="pg">${g.toLocaleString()}G</span><button type="button" class="sgn${neg?" m":""}" data-g="${g}" aria-label="プラスマイナス切替">${neg?"−":"＋"}</button><input type="number" inputmode="numeric" min="0" data-g="${g}" value="${v!=null?Math.abs(v):""}" placeholder="0" aria-label="${g}G時点の差枚"><span class="u">枚</span></div>`}).join("");
-  $("pathRows").querySelectorAll(".sgn").forEach(b=>b.onclick=()=>{haptic();b.classList.toggle("m");b.textContent=b.classList.contains("m")?"−":"＋";writePath()});
-  $("pathRows").querySelectorAll("input").forEach(i=>i.oninput=writePath);
+  $("pathRows").querySelectorAll(".sgn").forEach(b=>{addHap(b);b.onclick=e=>{if(e.target.tagName==="LABEL")return;haptic();b.classList.toggle("m");b.firstChild.nodeValue=b.classList.contains("m")?"−":"＋";writePath()}});
+  $("pathRows").querySelectorAll("input[type=number]").forEach(i=>i.oninput=writePath);
 }
 function writePath(){
-  const L=[];$("pathRows").querySelectorAll(".prow").forEach(r=>{const i=r.querySelector("input"),v=nonneg(i.value);if(v===null)return;const neg=r.querySelector(".sgn").classList.contains("m");L.push(i.dataset.g+" "+(neg?-v:v))});
+  const L=[];$("pathRows").querySelectorAll(".prow").forEach(r=>{const i=r.querySelector("input[type=number]"),v=nonneg(i.value);if(v===null)return;const neg=r.querySelector(".sgn").classList.contains("m");L.push(i.dataset.g+" "+(neg?-v:v))});
   T().path=L.join("\n");$("path").value=T().path;update();
 }
 
 /* ---------- haptic (iOS 18+ は switch の触覚を利用) ---------- */
-function haptic(){
-  try{
-    if(navigator.vibrate&&!/iP(hone|ad|od)|Macintosh/.test(navigator.userAgent)){navigator.vibrate(10);return}
-    const l=document.createElement("label");l.ariaHidden="true";l.style.display="none";
-    const c=document.createElement("input");c.type="checkbox";c.setAttribute("switch","");l.appendChild(c);
-    document.head.appendChild(l);l.click();document.head.removeChild(l);
-  }catch(e){}
+function haptic(){try{if(navigator.vibrate&&!/iP(hone|ad|od)|Macintosh/.test(navigator.userAgent))navigator.vibrate(10)}catch(e){}}
+/* iPhone: 実際の指のタップをスイッチ部品で受けると本体が震える(iOS 18+) */
+function addHap(btn){
+  if(btn.querySelector(".hap"))return;
+  const l=document.createElement("label");l.className="hap";l.setAttribute("aria-hidden","true");
+  const c=document.createElement("input");c.type="checkbox";c.setAttribute("switch","");c.tabIndex=-1;
+  l.appendChild(c);btn.appendChild(l);
 }
 /* ---------- records ---------- */
 const WD="日月火水木金土";
