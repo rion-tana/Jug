@@ -91,17 +91,17 @@ details{position:relative}
 .srow .name{font-size:17px}
 .srow .name small{display:block;font-size:13px;color:var(--label2);font-variant-numeric:tabular-nums}
 .ctl{display:flex;align-items:center;gap:10px}
-.ctl input{width:78px;text-align:right;border:0;background:transparent;color:var(--label);font-size:22px;font-weight:600;font-variant-numeric:tabular-nums;padding:0;outline:none}
+.ctl input{width:70px;text-align:right;border:0;background:transparent;color:var(--label);font-size:22px;font-weight:600;font-variant-numeric:tabular-nums;padding:0;outline:none}
 .ctl input::placeholder{color:var(--label3);font-weight:400}
 .ctl input:disabled{opacity:.4}
-.stepper{display:flex;background:var(--fill);border-radius:9px;overflow:hidden;height:32px}
-.stepper button{width:47px;border:0;background:transparent;color:var(--label);font-size:22px;line-height:1;cursor:pointer;position:relative}
-.stepper button+button::before{content:"";position:absolute;left:0;top:7px;bottom:7px;width:1px;background:var(--sep)}
-.stepper button:active{background:var(--fill2)}
-.stepper button:disabled{color:var(--label3)}
+.stepper{display:flex;gap:8px}
+.stepper button{width:50px;height:44px;border:0;border-radius:12px;background:var(--fill);color:var(--label);font-size:26px;font-weight:500;line-height:1;cursor:pointer;touch-action:manipulation;transition:transform .06s}
+.stepper button+button{background:rgba(0,122,255,.14);color:var(--blue)}
+.stepper button:active{transform:scale(.92);background:var(--fill2)}
+.stepper button:disabled{color:var(--label3);background:var(--fill)}
 .quick{grid-column:1/-1;display:flex;gap:8px;justify-content:flex-end}
-.quick button{height:28px;padding:0 12px;border-radius:14px;border:0;background:var(--fill);color:var(--blue);font-size:13px;font-weight:600;cursor:pointer;font-variant-numeric:tabular-nums}
-.quick button:active{background:var(--fill2)}
+.quick button{height:36px;min-width:56px;padding:0 12px;border-radius:18px;border:0;background:var(--fill);color:var(--blue);font-size:15px;font-weight:600;cursor:pointer;font-variant-numeric:tabular-nums;touch-action:manipulation}
+.quick button:active{background:var(--fill2);transform:scale(.95)}
 
 /* disclosure */
 summary{list-style:none;cursor:pointer;display:flex;align-items:center;min-height:44px;padding:8px 16px;gap:12px}
@@ -817,7 +817,7 @@ document.querySelectorAll("button[data-t]").forEach(btn=>btn.addEventListener("c
   let v=(parseInt(obj[k],10)||0)+parseInt(btn.dataset.d,10);
   if(!btn.dataset.neg)v=Math.max(0,v);
   obj[k]=String(v);if(k==="rc")T().rs="";if(k==="bc")T().bs="";$(k).value=v;update();
-  if(navigator.vibrate){try{navigator.vibrate(10)}catch(e){}}
+  haptic();
 }));
 FIELDS.forEach(k=>$(k).addEventListener("input",()=>{T()[k]=$(k).value;if(k==="rc")T().rs="";if(k==="bc")T().bs="";update()}));
 ["ig","ib","ir","ilist"].forEach(k=>$(k).addEventListener("input",()=>{S[k]=$(k).value;update()}));
@@ -838,7 +838,7 @@ function renderPathRows(force){
   mp.forEach((_,g)=>{if(!ks.includes(g))ks.push(g)});ks.sort((a,b)=>a-b);
   const key=ks.join(",");if(!force&&key===PKEYS)return;PKEYS=key;
   $("pathRows").innerHTML=ks.map(g=>{const v=mp.get(g);const neg=v!=null&&v<0;return `<div class="prow"><span class="pg">${g.toLocaleString()}G</span><button type="button" class="sgn${neg?" m":""}" data-g="${g}" aria-label="プラスマイナス切替">${neg?"−":"＋"}</button><input type="number" inputmode="numeric" min="0" data-g="${g}" value="${v!=null?Math.abs(v):""}" placeholder="0" aria-label="${g}G時点の差枚"><span class="u">枚</span></div>`}).join("");
-  $("pathRows").querySelectorAll(".sgn").forEach(b=>b.onclick=()=>{b.classList.toggle("m");b.textContent=b.classList.contains("m")?"−":"＋";writePath()});
+  $("pathRows").querySelectorAll(".sgn").forEach(b=>b.onclick=()=>{haptic();b.classList.toggle("m");b.textContent=b.classList.contains("m")?"−":"＋";writePath()});
   $("pathRows").querySelectorAll("input").forEach(i=>i.oninput=writePath);
 }
 function writePath(){
@@ -846,6 +846,15 @@ function writePath(){
   T().path=L.join("\n");$("path").value=T().path;update();
 }
 
+/* ---------- haptic (iOS 18+ は switch の触覚を利用) ---------- */
+function haptic(){
+  try{
+    if(navigator.vibrate&&!/iP(hone|ad|od)|Macintosh/.test(navigator.userAgent)){navigator.vibrate(10);return}
+    const l=document.createElement("label");l.ariaHidden="true";l.style.display="none";
+    const c=document.createElement("input");c.type="checkbox";c.setAttribute("switch","");l.appendChild(c);
+    document.head.appendChild(l);l.click();document.head.removeChild(l);
+  }catch(e){}
+}
 /* ---------- records ---------- */
 const WD="日月火水木金土";
 const pad=n=>String(n).padStart(2,"0");
@@ -878,15 +887,16 @@ let FILTER="all";
 function renderList(){
   let recs=[...S.records].sort((a,b)=>b.at-a.at);
   const short=k=>(MODELS[k]?MODELS[k].name:k).replace("ジャグラー","").replace("(6号機)","")||MODELS[k].name;
-  const used=[...new Set(S.records.map(r=>r.data.model))].filter(k=>MODELS[k]);
-  if(FILTER!=="all"&&!used.includes(FILTER))FILTER="all";
-  $("fgrp").hidden=used.length<2;
-  const opts=[["all","すべて"],...Object.keys(MODELS).filter(k=>used.includes(k)).map(k=>[k,MODELS[k].name])];
+  const cnt={};S.records.forEach(r=>{cnt[r.data.model]=(cnt[r.data.model]||0)+1});
+  if(FILTER!=="all"&&!MODELS[FILTER])FILTER="all";
+  $("fgrp").hidden=false;
+  const opts=[["all",`すべて(${S.records.length})`],...Object.keys(MODELS).map(k=>[k,`${MODELS[k].name}(${cnt[k]||0})`])];
   const fs=$("fsel");fs.innerHTML=opts.map(([k,l])=>`<option value="${k}">${l}</option>`).join("");fs.value=FILTER;
-  $("fname").textContent=(opts.find(o=>o[0]===FILTER)||opts[0])[1];
+  $("fname").textContent=(opts.find(o=>o[0]===FILTER)||opts[0])[1].replace(/\(\d+\)$/,"");
   fs.onchange=()=>{FILTER=fs.value;renderList()};
   if(FILTER!=="all")recs=recs.filter(r=>r.data.model===FILTER);
   const box=$("recList");
+  if(!recs.length&&S.records.length){box.innerHTML='<div class="empty">この機種の記録はまだありません</div>';return}
   if(!recs.length){box.innerHTML='<div class="empty">まだ記録がありません<br>判別画面右上の「記録」で追加できます</div>';return}
   const groups=[];recs.forEach(r=>{const k=dKey(r.at);let g=groups[groups.length-1];if(!g||g.k!==k){g={k,label:dLabel(r.at),items:[]};groups.push(g)}g.items.push(r)});
   const esc=x=>String(x).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]);
@@ -942,7 +952,7 @@ $("recBtn").addEventListener("click",()=>{
   const now=Date.now(),id="r"+now.toString(36)+Math.random().toString(36).slice(2,6);
   S.records.push({id,at:now,upd:now,data:clone(t)});S.editing=id;update();
   toast("記録しました。打ち終わったら「完了」");
-  if(navigator.vibrate){try{navigator.vibrate(15)}catch(e){}}
+  haptic();
 });
 function openSheet(){const r=CURV==="vMain"?curRec():null;$("clearBtn").hidden=!!r||CURV!=="vMain";$("delBtn").hidden=!r;$("clearBtn").parentNode.hidden=CURV!=="vMain";$("sheetT").textContent=r?`${dLabel(r.at)} ${tLabel(r.at)} の記録`:"";$("sheet").hidden=false}
 const closeSheet=()=>{$("sheet").hidden=true};
