@@ -337,6 +337,11 @@ dialog#authDlg::backdrop{background:rgba(0,0,0,.4)}
       <div class="ctl"><input id="gr" type="number" inputmode="numeric" min="0" placeholder="0"><div class="stepper"><button type="button" data-t="gr" data-d="-1" aria-label="1減らす">−</button><button type="button" data-t="gr" data-d="1" aria-label="1増やす">＋</button></div></div>
       <div class="quick"><button type="button" data-t="gr" data-d="5">+5</button><button type="button" data-t="gr" data-d="10">+10</button></div>
     </div>
+    <div class="srow">
+      <label class="name" for="gst">数え始めのG数<small id="gstInfo">途中から数えたときだけ</small></label>
+      <div class="ctl"><input id="gst" type="number" inputmode="numeric" min="0" placeholder="0"><div class="stepper"><button type="button" data-t="gst" data-d="-100" aria-label="100減らす">−</button><button type="button" data-t="gst" data-d="100" aria-label="100増やす">＋</button></div></div>
+      <div class="quick"><button type="button" data-t="gst" data-d="500">+500</button><button type="button" data-t="gst" data-d="1000">+1000</button></div>
+    </div>
     <div class="srow" id="rowNc">
       <label class="name" for="nc">チェリー<small id="rnc">–</small></label>
       <div class="ctl"><input id="nc" type="number" inputmode="numeric" min="0" placeholder="0"><div class="stepper"><button type="button" data-t="nc" data-d="-1" aria-label="1減らす">−</button><button type="button" data-t="nc" data-d="1" aria-label="1増やす">＋</button></div></div>
@@ -443,9 +448,9 @@ const MODELS={
   ultra:{name:"ウルトラミラクルジャグラー",b:[267.49,261.10,256.00,242.73,233.22,216.29],r:[425.56,402.06,350.46,322.84,297.89,277.69],gr:[5.93,5.93,5.93,5.93,5.87,5.81],w:[98.06,99.18,100.93,103.27,105.72,109.38],wo:[97.0,98.1,99.8,102.1,104.5,108.1],wf:[98.80,99.92,101.66,104.00,106.45,110.11],bn:240,ch:36.6,cp:2,bp:1024,pp:1024,bigHeavy:true,ncr:[37.22,37.22,37.22,37.09,36.13,35.48]}
 };
 const PRESETS={even:[1,1,1,1,1,1]};
-const FIELDS=["g","b","r","rs","rc","gr","gg","diff","bs","bc","nc","path"];
+const FIELDS=["g","b","r","rs","rc","gr","gg","gst","diff","bs","bc","nc","path"];
 const $=id=>document.getElementById(id);
-const blankTab=()=>({name:"",model:"my6",style:"aim",useRev:false,g:"",b:"",r:"",rs:"",rc:"",gr:"",gg:"",diff:"",bs:"",bc:"",nc:"",path:""});
+const blankTab=()=>({gst:"",name:"",model:"my6",style:"aim",useRev:false,g:"",b:"",r:"",rs:"",rc:"",gr:"",gg:"",diff:"",bs:"",bc:"",nc:"",path:""});
 let S={tabs:[blankTab()],cur:0,records:[],editing:null,close:"22:45",prior:"even",gph:"800",yen:"20",ig:"",ib:"",ir:"",gend:"8000",ilist:"",hrs:""};
 
 const sel=$("model");
@@ -550,7 +555,7 @@ function posterior(t,bonusOnly,priorOverride){
   const pr=priorOverride||getPrior(m).p;const ps=pr.reduce((a,c)=>a+c,0);
   let RS,RC;{const c=nonneg(t.rc),s0=nonneg(t.rs);if(c!==null){RC=c<=R?c:null;RS=RC!==null?R-RC:null}else if(s0!==null){RS=s0<=R?s0:null;RC=RS!==null?R-RS:null}else{RS=null;RC=null}}
   const useSplit=!bonusOnly&&!!m.rs&&RS!==null&&RC!==null&&RS+RC===R;
-  const GR=nonneg(t.gr),GG=nonneg(t.gg)??G;
+  const GR=nonneg(t.gr),GG=countG(t,G);
   const useCount=!bonusOnly&&GR!==null&&GG!==null&&GG>0&&GR<=GG;
   const rev=reverseGrape(t,m,G,B,R);
   const useRev=!bonusOnly&&!useCount&&rev&&rev.grapes>0&&rev.grapes<G;
@@ -578,6 +583,7 @@ function posterior(t,bonusOnly,priorOverride){
 
 /* ---------- UI ---------- */
 const STYLE_NAME={aim:"チェリー狙い",full:"フル攻略",free:"適当打ち"};
+function countG(t,G){const gg=nonneg(t.gg);if(gg!==null)return gg;const st=nonneg(t.gst);if(st!==null&&G!==null&&st<G)return G-st;return G}
 function hoursLeft(){const mm=/^(\d{1,2}):(\d{2})$/.exec(S.close||"");if(!mm)return 0;const n=new Date(),c=new Date(n);c.setHours(+mm[1],+mm[2],0,0);let h=(c-n)/3600000;if(h<-2)h+=24;return h>0&&h<16?h:0}
 function wOf(m,t){return t&&t.style==="free"?m.wo:t&&t.style==="full"?m.wf:m.w}
 function setRing(a,b){return;
@@ -622,7 +628,7 @@ function update(){
   const G=nonneg(t.g),B=nonneg(t.b),R=nonneg(t.r);
   $("rb").textContent=fmtRate(B,G);$("rr").textContent=fmtRate(R,G);
   $("rc2").textContent=(G&&B!==null&&R!==null&&B+R>0)?"合算 "+fmtRate(B+R,G)+"(BIG:REG = "+B+":"+R+")":"";
-  const GGd=nonneg(t.gg)??G;$("rg").textContent=fmtRate(nonneg(t.gr),GGd);
+  const GGd=countG(t,G);{const st=nonneg(t.gst);$("gstInfo").textContent=st===null?"途中から数えたときだけ":(G!==null&&st<G?`${G-st}G分で計算`:"総回転数より大きい")}$("rg").textContent=fmtRate(nonneg(t.gr),GGd);
   $("rnc").textContent="ボーナス非当選 "+fmtRate(nonneg(t.nc),GGd);
   {const RC=nonneg(t.rc),BC=nonneg(t.bc);$("rsInfo").textContent=RC===null?"チェリーと同時のREG":(R!==null&&RC<=R?`単独REG ${R-RC}回`:"REG回数より多い");$("bsInfo").textContent=BC===null?"チェリーと同時のBIG":(B!==null&&BC<=B?`単独BIG ${B-BC}回`:"BIG回数より多い")}
   {const BS=nonneg(t.bs),BC=nonneg(t.bc);$("bigMsg").textContent=(m.sb&&(BS!==null||BC!==null))?((BS!==null&&BC!==null&&BS+BC===B)?"✓ 反映中":"合計がBIG回数と合わないため未使用"):""}
