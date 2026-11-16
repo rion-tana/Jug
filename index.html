@@ -815,12 +815,12 @@ function drawChartNow(d,t){
 
 /* ---------- events ---------- */
 const GLOBAL=["ig","ib","ir"];
-document.querySelectorAll("button[data-t]").forEach(btn=>{addHap(btn);btn.addEventListener("click",e=>{if(e.target.tagName==="LABEL")return;
+document.querySelectorAll("button[data-t]").forEach(btn=>{const up=parseInt(btn.dataset.d,10)>0;if(up)addHap(btn);btn.addEventListener("click",e=>{if(e.target.tagName==="LABEL")return;
   const k=btn.dataset.t,obj=GLOBAL.includes(k)?S:T();
   let v=(parseInt(obj[k],10)||0)+parseInt(btn.dataset.d,10);
   if(!btn.dataset.neg)v=Math.max(0,v);
   obj[k]=String(v);if(k==="rc")T().rs="";if(k==="bc")T().bs="";$(k).value=v;update();
-  haptic();
+  if(up)haptic();
 })});
 FIELDS.forEach(k=>$(k).addEventListener("input",()=>{T()[k]=$(k).value;if(k==="rc")T().rs="";if(k==="bc")T().bs="";update()}));
 ["ig","ib","ir","ilist"].forEach(k=>$(k).addEventListener("input",()=>{S[k]=$(k).value;update()}));
