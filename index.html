@@ -210,7 +210,74 @@ dialog#authDlg::backdrop{background:rgba(0,0,0,.4)}
 .prow .u{font-size:15px;color:var(--label2)}
 .hap{position:absolute;inset:0;border-radius:inherit;cursor:pointer;opacity:.011;overflow:hidden;z-index:2}
 .hap input{position:absolute;inset:0;margin:0;width:100%;height:100%;cursor:pointer}
-.stepper button,.quick button,.sgn,#recBtn{position:relative}
+.stepper button,.quick button,.sgn,#recBtn,.dayq button,.dsgn,button:has(>.hap){position:relative}
+/* calendar */
+.calcard{background:var(--card);border-radius:16px;padding:10px 8px 8px;margin-top:6px}
+.calhead{display:flex;align-items:center;justify-content:space-between;padding:0 4px 8px}
+.calhead b{font-size:18px}
+.calnav{width:40px;height:36px;border:0;border-radius:10px;background:var(--fill);color:var(--blue);font-size:24px;line-height:1;cursor:pointer}
+.calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.calgrid .wd{text-align:center;font-size:12px;color:var(--label2);padding:2px 0 4px}
+.calgrid .wd.sun{color:var(--red)}.calgrid .wd.sat{color:var(--blue)}
+.cday{position:relative;min-height:54px;border:0;border-radius:9px;background:transparent;color:var(--label);font:inherit;display:flex;flex-direction:column;align-items:center;padding:5px 0 3px;cursor:pointer;gap:1px}
+.cday:active{background:var(--fill)}
+.cday .dn{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
+.cday.sun .dn{color:var(--red)}.cday.sat .dn{color:var(--blue)}
+.cday .dy{font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.cday.has{background:var(--fill)}
+.cday.today{box-shadow:inset 0 0 0 2px var(--blue)}
+.cday .rd{width:5px;height:5px;border-radius:3px;background:var(--purple);margin-top:auto}
+.cday.out{visibility:hidden}
+.calper{margin:12px 0 0}
+.calper button{height:34px;font-size:14px}
+.calsum{margin-top:10px}
+.sumhero{background:var(--card);border-radius:16px;padding:16px;text-align:center}
+.sumhero small{font-size:13px;color:var(--label2)}
+.sumhero .big{font-size:40px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.15}
+.sumgrid{display:grid;grid-template-columns:repeat(3,1fr);margin-top:12px;border-top:.5px solid var(--sep);padding-top:10px}
+.sumgrid>div+div{border-left:.5px solid var(--sep)}
+.sumgrid .k{font-size:12px;color:var(--label2)}.sumgrid .v{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums}
+.sumset{background:var(--card);border-radius:16px;padding:14px 16px;margin-top:10px}
+.sumset .row1{display:flex;justify-content:space-between;align-items:baseline}
+.sumset .row1 small{font-size:13px;color:var(--label2)}
+.sumset .es{font-size:34px;font-weight:800;color:var(--pink);font-variant-numeric:tabular-nums}
+.sumset .rates{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}
+.sumset .rates>div{background:var(--fill);border-radius:10px;padding:6px 4px;text-align:center}
+.sumset .rates .k{font-size:11px;color:var(--label2)}.sumset .rates .v{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
+.dayform{background:var(--card);border-radius:14px;padding:14px 16px}
+.dayt{text-align:center;font-size:15px;font-weight:600;margin-bottom:10px}
+.dfield{display:flex;align-items:center;gap:10px;margin-top:10px}
+.dfield label{width:44px;font-size:17px;font-weight:600}
+.dfield input{flex:1;min-width:0;height:50px;border:0;border-radius:12px;background:var(--fill);color:var(--label);font:inherit;font-size:26px;font-weight:700;text-align:right;padding:0 12px;font-variant-numeric:tabular-nums}
+.dfield .u{font-size:16px;color:var(--label2)}
+.dres{display:flex;justify-content:space-between;align-items:baseline;margin-top:12px;padding-top:10px;border-top:.5px solid var(--sep)}
+.dres span{font-size:15px;color:var(--label2)}.dres b{font-size:26px;font-variant-numeric:tabular-nums}
+.dayrow{display:flex;align-items:center;gap:10px}
+.dsgn{width:56px;height:52px;border:0;border-radius:12px;background:rgba(52,199,89,.16);color:var(--green);font-size:28px;font-weight:600;cursor:pointer}
+.dsgn.m{background:rgba(255,59,48,.14);color:var(--red)}
+#dayYen{flex:1;min-width:0;height:52px;border:0;border-radius:12px;background:var(--fill);color:var(--label);font:inherit;font-size:28px;font-weight:700;text-align:right;padding:0 12px;font-variant-numeric:tabular-nums}
+.dayrow .u{font-size:17px;color:var(--label2)}
+.dayq{display:flex;gap:8px;margin-top:8px;margin-bottom:6px}
+.dayq button{flex:1;height:38px;border:0;border-radius:19px;background:var(--fill);color:var(--blue);font-size:15px;font-weight:600;cursor:pointer}
+.dayrec{font-size:13px;color:var(--label2);margin-top:10px;line-height:1.5}
+.dayrec:empty{display:none}
+.daysave{display:block;width:100%;height:50px;margin-top:12px;border:0;border-radius:12px;background:var(--blue);color:#fff;font-size:17px;font-weight:600;cursor:pointer}
+.daydel{display:block;width:100%;height:40px;margin-top:6px;border:0;background:none;color:var(--red);font-size:15px;cursor:pointer}
+.caltitle{border:0;background:none;color:var(--label);font:inherit;font-size:18px;font-weight:700;cursor:pointer;padding:4px 10px;border-radius:10px}
+.caltitle::after{content:"";display:inline-block;width:7px;height:7px;border-right:2px solid var(--blue);border-bottom:2px solid var(--blue);transform:translateY(-3px) rotate(45deg);margin-left:8px;transition:transform .2s}
+.caltitle[aria-expanded="true"]::after{transform:translateY(1px) rotate(-135deg)}
+.mpick{padding:4px 4px 10px;border-bottom:.5px solid var(--sep);margin-bottom:8px;animation:fade .2s}
+.mpy{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.mpy b{font-size:16px}
+.mpg{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.mpg button{height:40px;border:0;border-radius:10px;background:var(--fill);color:var(--label);font-size:15px;font-weight:600;cursor:pointer}
+.mpg button.on{background:var(--blue);color:#fff}
+.mpg button .ms{display:block;font-size:10px;font-weight:600;margin-top:-2px}
+.cday.sel{background:var(--blue)!important;color:#fff}
+.cday.sel .dn,.cday.sel .dy{color:#fff!important}
+.cday.sel .rd{background:#fff}
+.ivrt{font-size:13px;color:var(--label2);font-variant-numeric:tabular-nums;margin-top:2px}
+.dayedit{display:block;margin:12px auto 0;height:40px;padding:0 22px;border:0;border-radius:20px;background:var(--blue);color:#fff;font-size:15px;font-weight:600;cursor:pointer}
 /* app shell */
 [hidden]{display:none!important}
 .nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:8px 20px 8px;background:var(--navbg);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px)}
@@ -406,6 +473,17 @@ dialog#authDlg::backdrop{background:rgba(0,0,0,.4)}
   
   <p class="ftr" style="margin-top:14px">数値:メーカー公表値・ガリぞう氏調査値。結果は確率的な推測です。</p>
 </section>
+<section class="view" id="vCal" hidden>
+  <div class="calcard">
+    <div class="calhead"><button type="button" class="calnav" id="calPrev" aria-label="前の月">‹</button><button type="button" class="caltitle" id="calTitle" aria-expanded="false"></button><button type="button" class="calnav" id="calNext" aria-label="次の月">›</button></div>
+    <div class="mpick" id="mPick" hidden><div class="mpy"><button type="button" class="calnav" id="mpPrev" aria-label="前の年">‹</button><b id="mpYear"></b><button type="button" class="calnav" id="mpNext" aria-label="次の年">›</button></div><div class="mpg" id="mpGrid"></div></div>
+    <div class="calgrid" id="calGrid"></div>
+  </div>
+  <div class="seg calper" id="calPer" role="group" aria-label="集計期間">
+    <button type="button" data-p="day" id="perDay">今日</button><button type="button" data-p="week">今週</button><button type="button" data-p="month" aria-pressed="true">この月</button><button type="button" data-p="year">今年</button><button type="button" data-p="all">通算</button>
+  </div>
+  <div class="calsum" id="calSum"></div>
+</section>
 <section class="view" id="vList" hidden>
   <div class="group" id="fgrp"><div class="cell picker"><span class="lbl">機種</span><span class="val chev" id="fname">すべて</span><select id="fsel" aria-label="機種で絞り込み"></select></div></div>
   <div id="recList"></div>
@@ -413,6 +491,7 @@ dialog#authDlg::backdrop{background:rgba(0,0,0,.4)}
 </div>
 <nav class="tabbar" role="tablist">
   <button type="button" data-v="vMain" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>判別</button>
+  <button type="button" data-v="vCal" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>収支</button>
   <button type="button" data-v="vList" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>記録<span class="badge" id="recCount" hidden></span></button>
 </nav>
 <dialog id="authDlg" aria-labelledby="authTitle">
@@ -431,6 +510,18 @@ dialog#authDlg::backdrop{background:rgba(0,0,0,.4)}
       
     </form>
   </dialog>
+<div class="sheetbg" id="daySheet" hidden><div class="sheet" role="dialog" aria-label="収支の入力">
+  <div class="dayform">
+    <div class="dayt" id="dayT"></div>
+    <div class="dfield"><label for="dayInv">投資</label><input id="dayInv" type="number" inputmode="numeric" min="0" placeholder="0"><span class="u">円</span></div>
+    <div class="dfield"><label for="dayRet">回収</label><input id="dayRet" type="number" inputmode="numeric" min="0" placeholder="0"><span class="u">円</span></div>
+    <div class="dres"><span>収支</span><b id="dayRes">–</b></div>
+    <div class="dayrec" id="dayRec"></div>
+    <button type="button" class="daysave" id="daySave">保存</button>
+    <button type="button" class="daydel" id="dayDel">この日の収支を消す</button>
+  </div>
+  <button type="button" class="scancel" id="dayX">キャンセル</button>
+</div></div>
 <div class="toast" id="toast" role="status" aria-live="polite"><span id="toastTx"></span><button type="button" id="toastAct" hidden></button></div>
 <script>
 const MV={b:[273.07,270.81,266.41,254.02,240.06,229.15],r:[409.60,385.51,336.08,289.98,268.59,229.15],rs:[655.36,601.25,492.75,407.06,390.10,327.68],rc:[1092.27,1074.36,1057.03,1008.25,862.32,762.05],gr:[5.90,5.85,5.80,5.78,5.76,5.66],w:[97.83,98.95,101.19,104.31,107.19,111.65],wo:[97.0,98.0,99.9,102.8,105.3,109.4],wf:[98.61,99.73,101.97,105.09,107.97,112.44],bn:240,ch:36.8,cp:2,bp:1024,pp:1024,sb:[409.60,407.06,399.61,378.82,354.25,337.81],sbx:16384,ncr:[38.10,38.10,36.82,35.62,35.62,35.62]};
@@ -451,7 +542,7 @@ const PRESETS={even:[1,1,1,1,1,1]};
 const FIELDS=["g","b","r","rs","rc","gr","gg","gst","diff","bs","bc","nc","path"];
 const $=id=>document.getElementById(id);
 const blankTab=()=>({gst:"",name:"",model:"my6",style:"aim",useRev:false,g:"",b:"",r:"",rs:"",rc:"",gr:"",gg:"",diff:"",bs:"",bc:"",nc:"",path:""});
-let S={tabs:[blankTab()],cur:0,records:[],editing:null,close:"22:45",prior:"even",gph:"800",yen:"20",ig:"",ib:"",ir:"",gend:"8000",ilist:"",hrs:""};
+let S={tabs:[blankTab()],cur:0,records:[],days:{},editing:null,close:"22:45",prior:"even",gph:"800",yen:"20",ig:"",ib:"",ir:"",gend:"8000",ilist:"",hrs:""};
 
 const sel=$("model");
 Object.entries(MODELS).forEach(([k,m])=>{const o=document.createElement("option");o.value=k;o.textContent=m.name;sel.appendChild(o)});
@@ -463,12 +554,13 @@ const T=()=>S.tabs[S.cur];
 
 let LASTJ=null;
 window.JUG={_quiet:false,onSave:null,getState:()=>S,
-  setState(o){if(!o||!Array.isArray(o.tabs)||!o.tabs.length)return;JUG._quiet=true;try{S={...S,...o};normalize();syncForm();update();renderList()}finally{JUG._quiet=false}},
+  setState(o){if(!o||!Array.isArray(o.tabs)||!o.tabs.length)return;JUG._quiet=true;try{S={...S,...o};normalize();syncForm();update();renderList();if(!$("vCal").hidden)renderCal()}finally{JUG._quiet=false}},
   hasData(){return S.tabs.some(t=>t.g||t.b||t.r)||(S.records||[]).length>0}};
 const hasNums=t=>!!(t&&(t.g||t.b||t.r));
 const clone=o=>JSON.parse(JSON.stringify(o));
 function normalize(){
   S.prior="even";S.ig=S.ib=S.ir=S.ilist="";
+  if(!S.days||typeof S.days!=="object"||Array.isArray(S.days))S.days={};
   S.records=Array.isArray(S.records)?S.records.filter(r=>r&&r.id&&r.data).map(r=>({...r,data:{...blankTab(),...r.data}})):[];
   let tabs=(S.tabs||[]).map(t=>({...blankTab(),...t}));if(!tabs.length)tabs=[blankTab()];
   const cur=Math.min(Math.max(0,S.cur|0),tabs.length-1);
@@ -864,6 +956,92 @@ function addHap(btn){
   const c=document.createElement("input");c.type="checkbox";c.setAttribute("switch","");c.tabIndex=-1;
   l.appendChild(c);btn.appendChild(l);
 }
+
+/* ---------- 収支カレンダー ---------- */
+let CALM=(()=>{const d=new Date();return {y:d.getFullYear(),m:d.getMonth()}})(),CALP="month",DAYK=null,SELK=(()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")})(),MPY=CALM.y;
+const fmtYen=v=>(v>0?"+":v<0?"−":"")+Math.abs(v).toLocaleString()+"円";
+function fmtShort(v){const a=Math.abs(v),sg=v>0?"+":v<0?"−":"";if(a>=10000)return sg+(Math.round(a/1000)/10).toString().replace(/\.0$/,"")+"万";if(a>=1000)return sg+Math.round(a/1000)+"千";return sg+a}
+const yenCls=v=>v>0?"pos":v<0?"neg":"";
+function periodRange(p){
+  const t=new Date();t.setHours(0,0,0,0);
+  if(p==="week"){const a=new Date(t);a.setDate(t.getDate()-t.getDay());const b=new Date(a);b.setDate(a.getDate()+6);return [a,b,"今週"]}
+  if(p==="day"){const [y,mo,d]=SELK.split("-").map(Number),a=new Date(y,mo-1,d);return [a,a,SELK===dKey(Date.now())?"今日":`${mo}月${d}日(${WD[a.getDay()]})`]}
+  if(p==="month"){const a=new Date(CALM.y,CALM.m,1),b=new Date(CALM.y,CALM.m+1,0);return [a,b,`${CALM.m+1}月`]}
+  if(p==="year"){return [new Date(t.getFullYear(),0,1),new Date(t.getFullYear(),11,31),`${t.getFullYear()}年`]}
+  return [new Date(2000,0,1),new Date(2100,0,1),"通算"];
+}
+function renderCal(){
+  const {y,m}=CALM;$("calTitle").textContent=`${y}年${m+1}月`;$("calTitle").setAttribute("aria-expanded",$("mPick").hidden?"false":"true");
+  const first=new Date(y,m,1),nd=new Date(y,m+1,0).getDate(),today=dKey(Date.now());
+  const recDays=new Set(S.records.map(r=>dKey(r.at)));
+  let h=["日","月","火","水","木","金","土"].map((w,i)=>`<div class="wd${i===0?" sun":i===6?" sat":""}">${w}</div>`).join("");
+  for(let i=0;i<first.getDay();i++)h+='<div class="cday out"></div>';
+  for(let d=1;d<=nd;d++){
+    const k=`${y}-${pad(m+1)}-${pad(d)}`,dw=(first.getDay()+d-1)%7,e=S.days[k],v=e?e.yen:null;
+    h+=`<button type="button" class="cday${dw===0?" sun":dw===6?" sat":""}${k===today?" today":""}${k===SELK&&CALP==="day"?" sel":""}${v!=null?" has":""}" data-k="${k}"><span class="dn">${d}</span>${v!=null?`<span class="dy ${yenCls(v)}">${fmtShort(v)}</span>`:""}${recDays.has(k)?'<span class="rd" aria-label="記録あり"></span>':""}</button>`;
+  }
+  $("calGrid").innerHTML=h;
+  $("calGrid").querySelectorAll(".cday[data-k]").forEach(b=>b.onclick=()=>{const k=b.dataset.k;if(CALP==="day"&&SELK===k){openDay(k);return}SELK=k;CALP="day";renderCal()});
+  {const [,mo,d]=SELK.split("-").map(Number);$("perDay").textContent=SELK===today?"今日":`${mo}/${d}`}
+  renderMPick();
+  document.querySelectorAll("#calPer button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.p===CALP?"true":"false"));
+  renderCalSum();
+}
+function renderCalSum(){
+  const [a,b,label]=periodRange(CALP),ak=dKey(a.getTime()),bk=dKey(b.getTime());
+  const days=Object.entries(S.days).filter(([k,e])=>k>=ak&&k<=bk&&e&&isFinite(e.yen));
+  const ivt=days.reduce((s,[,e])=>s+dayInvRet(e)[0],0),rtt=days.reduce((s,[,e])=>s+dayInvRet(e)[1],0);
+  const tot=days.reduce((s,[,e])=>s+e.yen,0),win=days.filter(([,e])=>e.yen>0).length;
+  const recs=S.records.filter(r=>{const k=dKey(r.at);return k>=ak&&k<=bk});
+  let G=0,B=0,Rg=0,GR=0,GRG=0,esW=0,esG=0;
+  recs.forEach(r=>{const t=r.data,g=nonneg(t.g)||0;G+=g;B+=nonneg(t.b)||0;Rg+=nonneg(t.r)||0;
+    const gr=nonneg(t.gr);if(gr!==null){GR+=gr;GRG+=countG(t,g)||0}
+    const sc=recScore(t);if(sc&&g){esW+=sc.es*g;esG+=g}});
+  const avg=days.length?Math.round(tot/days.length):0;
+  const isDay=CALP==="day";
+  let h=`<div class="sumhero"><small>${label}の収支</small><div class="big ${yenCls(tot)}">${days.length?fmtYen(tot):"–"}</div>${days.length?`<div class="ivrt">投資 ${ivt.toLocaleString()}円 / 回収 ${rtt.toLocaleString()}円</div>`:""}`+(isDay?`<button type="button" class="dayedit" id="dayEditBtn">${days.length?"収支を直す":"収支を入力"}</button></div>`:`
+    <div class="sumgrid"><div><div class="k">稼働</div><div class="v">${days.length}日</div></div><div><div class="k">勝率</div><div class="v">${days.length?Math.round(win/days.length*100)+"%":"–"}</div></div><div><div class="k">1日平均</div><div class="v ${yenCls(avg)}">${days.length?fmtShort(avg):"–"}</div></div></div></div>`);
+  $("calSum").innerHTML=h;
+  if(isDay)$("dayEditBtn").onclick=()=>openDay(SELK);
+}
+function renderMPick(){
+  if($("mPick").hidden)return;$("mpYear").textContent=MPY+"年";
+  const cnt=Array(12).fill(0);Object.entries(S.days).forEach(([k,e])=>{if(+k.slice(0,4)===MPY)cnt[+k.slice(5,7)-1]+=e.yen});
+  $("mpGrid").innerHTML=cnt.map((v,i)=>`<button type="button" data-m="${i}" class="${MPY===CALM.y&&i===CALM.m?"on":""}">${i+1}月${v?`<span class="ms ${MPY===CALM.y&&i===CALM.m?"":yenCls(v)}">${fmtShort(v)}</span>`:""}</button>`).join("");
+  $("mpGrid").querySelectorAll("button").forEach(b=>b.onclick=()=>{CALM={y:MPY,m:+b.dataset.m};if(CALP==="day")CALP="month";$("mPick").hidden=true;renderCal()});
+}
+function dayInvRet(e){if(!e)return [null,null];if(e.inv!=null||e.ret!=null)return [e.inv??0,e.ret??0];return e.yen>=0?[0,e.yen]:[-e.yen,0]}
+function updDayRes(){const iv=nonneg($("dayInv").value),rt=nonneg($("dayRet").value);const el=$("dayRes");
+  if(iv===null&&rt===null){el.textContent="–";el.className="";return}const v=(rt||0)-(iv||0);el.textContent=fmtYen(v);el.className=yenCls(v)}
+function openDay(k){
+  DAYK=k;const [y,mo,d]=k.split("-").map(Number),dt=new Date(y,mo-1,d),e=S.days[k];
+  $("dayT").textContent=`${mo}月${d}日(${WD[dt.getDay()]})の収支`;
+  const [iv,rt]=dayInvRet(e);$("dayInv").value=iv?iv:"";$("dayRet").value=rt?rt:"";updDayRes();
+  $("dayDel").hidden=!e;
+  const recs=S.records.filter(r=>dKey(r.at)===k);
+  $("dayRec").textContent=recs.length?`この日の記録 ${recs.length}台:`+recs.map(r=>r.data.name||MODELS[r.data.model].name.replace("ジャグラー","")).join("、"):"";
+  $("daySheet").hidden=false;
+  if(!iv)setTimeout(()=>{try{$("dayInv").focus()}catch(e){}},50);
+}
+const closeDay=()=>{$("daySheet").hidden=true;DAYK=null};
+["dayInv","dayRet"].forEach(id=>$(id).addEventListener("input",updDayRes));
+$("daySave").addEventListener("click",()=>{if(!DAYK)return;const iv=nonneg($("dayInv").value),rt=nonneg($("dayRet").value);
+  if(iv===null&&rt===null){delete S.days[DAYK]}else S.days[DAYK]={inv:iv||0,ret:rt||0,yen:(rt||0)-(iv||0),upd:Date.now()};
+  closeDay();save();renderCal();toast("収支を保存しました")});
+$("dayDel").addEventListener("click",()=>{if(!DAYK)return;const k=DAYK,bk=S.days[k];delete S.days[k];closeDay();save();renderCal();
+  toast("消しました","元に戻す",()=>{S.days[k]=bk;save();renderCal()})});
+$("dayX").addEventListener("click",closeDay);
+$("daySheet").addEventListener("click",e=>{if(e.target.id==="daySheet")closeDay()});
+$("calPrev").addEventListener("click",()=>{CALM.m--;if(CALM.m<0){CALM.m=11;CALM.y--}if(CALP==="day")CALP="month";renderCal()});
+$("calNext").addEventListener("click",()=>{CALM.m++;if(CALM.m>11){CALM.m=0;CALM.y++}if(CALP==="day")CALP="month";renderCal()});
+document.querySelectorAll("#calPer button").forEach(b=>b.addEventListener("click",()=>{CALP=b.dataset.p;
+  const d=new Date();
+  if(CALP==="day"){SELK=dKey(Date.now());CALM={y:d.getFullYear(),m:d.getMonth()}}
+  if(CALP==="week"||CALP==="year"||CALP==="all"){CALM={y:d.getFullYear(),m:d.getMonth()}}
+  renderCal()}));
+$("calTitle").addEventListener("click",()=>{const open=$("mPick").hidden;$("mPick").hidden=!open;MPY=CALM.y;renderCal()});
+$("mpPrev").addEventListener("click",()=>{MPY--;renderMPick()});
+$("mpNext").addEventListener("click",()=>{MPY++;renderMPick()});
 /* ---------- records ---------- */
 const WD="日月火水木金土";
 const pad=n=>String(n).padStart(2,"0");
@@ -890,7 +1068,7 @@ function toast(msg,actLabel,act){
 }
 function blankKeep(){const o=T(),n=blankTab();n.model=o.model;return n}
 function recScore(t){
-  try{const d=posterior(t);if(!d)return null;const e=evPosterior(t);const W=wOf(d.m,t);const pp=(e&&e.d?e.d.post:d.post);let w=0;pp.forEach((p,i)=>w+=p*W[i]);let bi=0;d.post.forEach((p,i)=>{if(p>d.post[bi])bi=i});return {p56:(d.post[4]+d.post[5])*100,w,set:bi+1,pc:d.post[bi]*100}}catch(e){return null}
+  try{const d=posterior(t);if(!d)return null;const e=evPosterior(t);const W=wOf(d.m,t);const pp=(e&&e.d?e.d.post:d.post);let w=0;pp.forEach((p,i)=>w+=p*W[i]);let bi=0;d.post.forEach((p,i)=>{if(p>d.post[bi])bi=i});let es=0;d.post.forEach((p,i)=>es+=p*(i+1));return {p56:(d.post[4]+d.post[5])*100,w,set:bi+1,pc:d.post[bi]*100,es}}catch(e){return null}
 }
 let FILTER="all";
 function renderList(){
@@ -945,13 +1123,14 @@ function openRecord(id){
   if(!S.editing&&hasNums(T())&&!confirm("入力中のデータ(未記録)は消えます。この記録を開きますか?"))return;
   S.editing=id;S.tabs[0]={...blankTab(),...clone(r.data),style:"aim"};syncForm();update();showView("vMain");
 }
-const VIEWS={vMain:"判別",vList:"記録"};
+const VIEWS={vMain:"判別",vCal:"収支",vList:"記録"};
 let CURV="vMain";
 function showView(v){
   Object.keys(VIEWS).forEach(k=>$(k).hidden=k!==v);
   document.querySelectorAll(".tabbar button").forEach(b=>b.setAttribute("aria-selected",b.dataset.v===v?"true":"false"));
   $("navTitle").textContent=VIEWS[v];$("recBtn").hidden=v!=="vMain";CURV=v;
   if(v==="vList")renderList();
+  if(v==="vCal")renderCal();
   window.scrollTo(0,0);
 }
 document.querySelectorAll(".tabbar button").forEach(b=>b.addEventListener("click",()=>showView(b.dataset.v)));
