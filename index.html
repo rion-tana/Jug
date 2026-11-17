@@ -257,6 +257,9 @@ dialog#authDlg::backdrop{background:rgba(0,0,0,.4)}
 .dsgn.m{background:rgba(255,59,48,.14);color:var(--red)}
 #dayYen{flex:1;min-width:0;height:52px;border:0;border-radius:12px;background:var(--fill);color:var(--label);font:inherit;font-size:28px;font-weight:700;text-align:right;padding:0 12px;font-variant-numeric:tabular-nums}
 .dayrow .u{font-size:17px;color:var(--label2)}
+.dmemo{display:block;width:100%;margin-top:10px;border:0;border-radius:12px;background:var(--fill);color:var(--label);font:inherit;font-size:16px;line-height:1.45;padding:10px 12px;resize:none}
+.memoline{font-size:14px;color:var(--label);background:var(--fill);border-radius:10px;padding:8px 12px;margin-top:10px;text-align:left;white-space:pre-wrap;word-break:break-all}
+.cday .dm{font-size:10px;color:var(--label2)}
 .dayq{display:flex;gap:8px;margin-top:8px;margin-bottom:6px}
 .dayq button{flex:1;height:38px;border:0;border-radius:19px;background:var(--fill);color:var(--blue);font-size:15px;font-weight:600;cursor:pointer}
 .dayrec{font-size:13px;color:var(--label2);margin-top:10px;line-height:1.5}
@@ -516,6 +519,7 @@ dialog#authDlg::backdrop{background:rgba(0,0,0,.4)}
     <div class="dfield"><label for="dayInv">投資</label><input id="dayInv" type="number" inputmode="numeric" min="0" placeholder="0"><span class="u">円</span></div>
     <div class="dfield"><label for="dayRet">回収</label><input id="dayRet" type="number" inputmode="numeric" min="0" placeholder="0"><span class="u">円</span></div>
     <div class="dres"><span>収支</span><b id="dayRes">–</b></div>
+    <textarea id="dayMemo" class="dmemo" rows="2" maxlength="300" placeholder="メモ(店・台番・機種など)"></textarea>
     <div class="dayrec" id="dayRec"></div>
     <button type="button" class="daysave" id="daySave">保存</button>
     <button type="button" class="daydel" id="dayDel">この日の収支を消す</button>
@@ -978,7 +982,7 @@ function renderCal(){
   for(let i=0;i<first.getDay();i++)h+='<div class="cday out"></div>';
   for(let d=1;d<=nd;d++){
     const k=`${y}-${pad(m+1)}-${pad(d)}`,dw=(first.getDay()+d-1)%7,e=S.days[k],v=e?e.yen:null;
-    h+=`<button type="button" class="cday${dw===0?" sun":dw===6?" sat":""}${k===today?" today":""}${k===SELK&&CALP==="day"?" sel":""}${v!=null?" has":""}" data-k="${k}"><span class="dn">${d}</span>${v!=null?`<span class="dy ${yenCls(v)}">${fmtShort(v)}</span>`:""}</button>`;
+    h+=`<button type="button" class="cday${dw===0?" sun":dw===6?" sat":""}${k===today?" today":""}${k===SELK&&CALP==="day"?" sel":""}${e?" has":""}" data-k="${k}"><span class="dn">${d}</span>${Number.isFinite(v)?`<span class="dy ${yenCls(v)}">${fmtShort(v)}</span>`:(e&&e.memo?'<span class="dm">メモ</span>':"")}</button>`;
   }
   $("calGrid").innerHTML=h;
   $("calGrid").querySelectorAll(".cday[data-k]").forEach(b=>b.onclick=()=>{const k=b.dataset.k;if(CALP==="day"&&SELK===k){openDay(k);return}SELK=k;CALP="day";renderCal()});
@@ -989,7 +993,7 @@ function renderCal(){
 }
 function renderCalSum(){
   const [a,b,label]=periodRange(CALP),ak=dKey(a.getTime()),bk=dKey(b.getTime());
-  const days=Object.entries(S.days).filter(([k,e])=>k>=ak&&k<=bk&&e&&isFinite(e.yen));
+  const days=Object.entries(S.days).filter(([k,e])=>k>=ak&&k<=bk&&e&&Number.isFinite(e.yen));
   const ivt=days.reduce((s,[,e])=>s+dayInvRet(e)[0],0),rtt=days.reduce((s,[,e])=>s+dayInvRet(e)[1],0);
   const tot=days.reduce((s,[,e])=>s+e.yen,0),win=days.filter(([,e])=>e.yen>0).length;
   const recs=S.records.filter(r=>{const k=dKey(r.at);return k>=ak&&k<=bk});
@@ -999,24 +1003,24 @@ function renderCalSum(){
     const sc=recScore(t);if(sc&&g){esW+=sc.es*g;esG+=g}});
   const avg=days.length?Math.round(tot/days.length):0;
   const isDay=CALP==="day";
-  let h=`<div class="sumhero"><small>${label}の収支</small><div class="big ${yenCls(tot)}">${days.length?fmtYen(tot):"–"}</div>${days.length?`<div class="ivrt">投資 ${ivt.toLocaleString()}円 / 回収 ${rtt.toLocaleString()}円</div>`:""}`+(isDay?`<button type="button" class="dayedit" id="dayEditBtn">${days.length?"収支を直す":"収支を入力"}</button></div>`:`
+  let h=`<div class="sumhero"><small>${label}の収支</small><div class="big ${yenCls(tot)}">${days.length?fmtYen(tot):"–"}</div>${days.length?`<div class="ivrt">投資 ${ivt.toLocaleString()}円 / 回収 ${rtt.toLocaleString()}円</div>`:""}`+(isDay?`${(S.days[SELK]&&S.days[SELK].memo)?`<div class="memoline" id="dayMemoView"></div>`:""}<button type="button" class="dayedit" id="dayEditBtn">${S.days[SELK]?"収支を直す":"収支を入力"}</button></div>`:`
     <div class="sumgrid"><div><div class="k">稼働</div><div class="v">${days.length}日</div></div><div><div class="k">勝率</div><div class="v">${days.length?Math.round(win/days.length*100)+"%":"–"}</div></div><div><div class="k">1日平均</div><div class="v ${yenCls(avg)}">${days.length?fmtShort(avg):"–"}</div></div></div></div>`);
   $("calSum").innerHTML=h;
-  if(isDay)$("dayEditBtn").onclick=()=>openDay(SELK);
+  if(isDay){$("dayEditBtn").onclick=()=>openDay(SELK);const mv=$("dayMemoView");if(mv)mv.textContent=S.days[SELK].memo}
 }
 function renderMPick(){
   if($("mPick").hidden)return;$("mpYear").textContent=MPY+"年";
-  const cnt=Array(12).fill(0);Object.entries(S.days).forEach(([k,e])=>{if(+k.slice(0,4)===MPY)cnt[+k.slice(5,7)-1]+=e.yen});
+  const cnt=Array(12).fill(0);Object.entries(S.days).forEach(([k,e])=>{if(+k.slice(0,4)===MPY)cnt[+k.slice(5,7)-1]+=Number.isFinite(e.yen)?e.yen:0});
   $("mpGrid").innerHTML=cnt.map((v,i)=>`<button type="button" data-m="${i}" class="${MPY===CALM.y&&i===CALM.m?"on":""}">${i+1}月${v?`<span class="ms ${MPY===CALM.y&&i===CALM.m?"":yenCls(v)}">${fmtShort(v)}</span>`:""}</button>`).join("");
   $("mpGrid").querySelectorAll("button").forEach(b=>b.onclick=()=>{CALM={y:MPY,m:+b.dataset.m};if(CALP==="day")CALP="month";$("mPick").hidden=true;renderCal()});
 }
-function dayInvRet(e){if(!e)return [null,null];if(e.inv!=null||e.ret!=null)return [e.inv??0,e.ret??0];return e.yen>=0?[0,e.yen]:[-e.yen,0]}
+function dayInvRet(e){if(!e)return [null,null];if(e.inv!=null||e.ret!=null)return [e.inv??0,e.ret??0];if(!Number.isFinite(e.yen))return [null,null];return e.yen>=0?[0,e.yen]:[-e.yen,0]}
 function updDayRes(){const iv=nonneg($("dayInv").value),rt=nonneg($("dayRet").value);const el=$("dayRes");
   if(iv===null&&rt===null){el.textContent="–";el.className="";return}const v=(rt||0)-(iv||0);el.textContent=fmtYen(v);el.className=yenCls(v)}
 function openDay(k){
   DAYK=k;const [y,mo,d]=k.split("-").map(Number),dt=new Date(y,mo-1,d),e=S.days[k];
   $("dayT").textContent=`${mo}月${d}日(${WD[dt.getDay()]})の収支`;
-  const [iv,rt]=dayInvRet(e);$("dayInv").value=iv?iv:"";$("dayRet").value=rt?rt:"";updDayRes();
+  const [iv,rt]=dayInvRet(e);$("dayInv").value=iv?iv:"";$("dayRet").value=rt?rt:"";$("dayMemo").value=e&&e.memo||"";updDayRes();
   $("dayDel").hidden=!e;
   const recs=S.records.filter(r=>dKey(r.at)===k);
   $("dayRec").textContent=recs.length?`この日の記録 ${recs.length}台:`+recs.map(r=>r.data.name||MODELS[r.data.model].name.replace("ジャグラー","")).join("、"):"";
@@ -1026,7 +1030,8 @@ function openDay(k){
 const closeDay=()=>{$("daySheet").hidden=true;DAYK=null};
 ["dayInv","dayRet"].forEach(id=>$(id).addEventListener("input",updDayRes));
 $("daySave").addEventListener("click",()=>{if(!DAYK)return;const iv=nonneg($("dayInv").value),rt=nonneg($("dayRet").value);
-  if(iv===null&&rt===null){delete S.days[DAYK]}else S.days[DAYK]={inv:iv||0,ret:rt||0,yen:(rt||0)-(iv||0),upd:Date.now()};
+  const memo=$("dayMemo").value.trim();
+  if(iv===null&&rt===null&&!memo){delete S.days[DAYK]}else if(iv===null&&rt===null){S.days[DAYK]={memo,upd:Date.now()}}else S.days[DAYK]={inv:iv||0,ret:rt||0,yen:(rt||0)-(iv||0),memo,upd:Date.now()};
   closeDay();save();renderCal();toast("収支を保存しました")});
 $("dayDel").addEventListener("click",()=>{if(!DAYK)return;const k=DAYK,bk=S.days[k];delete S.days[k];closeDay();save();renderCal();
   toast("消しました","元に戻す",()=>{S.days[k]=bk;save();renderCal()})});
